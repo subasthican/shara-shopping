@@ -19,25 +19,33 @@ export const arrivals = [
   {
     name: 'Blush Drape Maxi Dress',
     price: 'LKR 17,900',
+    badge: 'New',
     sizes: ['XS', 'S', 'M', 'L'],
     accent: 'from-[#f1cbc8] via-[#f8eee8] to-[#d39b99]',
+    figure: 'figure-blush',
   },
   {
     name: 'Floral Chiffon Midi Dress',
     price: 'LKR 14,500',
+    badge: 'New',
     sizes: ['XS', 'S', 'M', 'L'],
     accent: 'from-[#f6d7c7] via-[#fbf3ea] to-[#d99c7e]',
+    figure: 'figure-floral',
   },
   {
     name: 'One Shoulder Satin Dress',
     price: 'LKR 16,800',
+    badge: 'New',
     sizes: ['XS', 'S', 'M', 'L'],
     accent: 'from-[#e7edf4] via-[#eef2f5] to-[#233c67]',
+    figure: 'figure-navy',
   },
   {
     name: 'Lace Overlay Mini Dress',
     price: 'LKR 12,900',
+    badge: 'New',
     sizes: ['XS', 'S', 'M', 'L'],
     accent: 'from-[#f8eee1] via-[#fffaf2] to-[#d5b88e]',
+    figure: 'figure-lace',
   },
 ];

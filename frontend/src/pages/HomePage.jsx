@@ -1,7 +1,5 @@
 import {
   ArrowRight,
-  Heart,
-  Martini,
   PhoneCall,
   ShoppingBag,
   Sparkles,
@@ -10,6 +8,7 @@ import {
 import heroImage from '../assets/home-hero.png';
 import Footer from '../components/Footer.jsx';
 import Header from '../components/Header.jsx';
+import ProductCard from '../components/ProductCard.jsx';
 import { arrivals, quickCategories, shopCategories } from '../data/homeData.js';
 
 export default function HomePage() {
@@ -122,39 +121,12 @@ function NewArrivals() {
 
       <div className="mx-auto mt-6 grid max-w-7xl gap-6 md:grid-cols-2 lg:grid-cols-4">
         {arrivals.map((product, index) => (
-          <article className="overflow-hidden rounded border border-[#ded3c9] bg-white shadow-sm" key={product.name}>
-            <div className={`relative flex aspect-[4/3] items-end justify-center bg-gradient-to-br ${product.accent}`}>
-              <span className="absolute left-3 top-3 rounded bg-rosewood px-3 py-1 text-[11px] font-bold uppercase text-white">
-                New
-              </span>
-              <button className="icon-button absolute right-3 top-3 bg-white/80" aria-label={`Add ${product.name} to wishlist`}>
-                <Heart size={20} />
-              </button>
-              <span className="product-silhouette" />
-            </div>
-            <div className="p-4">
-              <h3 className="text-sm font-semibold">{product.name}</h3>
-              <p className="mt-2 text-sm font-bold">{product.price}</p>
-              <div className="mt-4 flex gap-2">
-                {product.sizes.map((size) => (
-                  <span
-                    className={`grid h-7 w-8 place-items-center rounded border text-xs ${
-                      size === (index % 2 === 0 ? 'M' : 'S') ? 'border-ink bg-ink text-white' : 'border-[#d5ccc2]'
-                    }`}
-                    key={size}
-                  >
-                    {size}
-                  </span>
-                ))}
-              </div>
-              <div className="mt-4 flex gap-3">
-                <button className="btn-primary h-11 flex-1 px-4 text-xs">Buy Now</button>
-                <button className="grid h-11 w-11 place-items-center rounded border border-gold text-gold" aria-label="WhatsApp order">
-                  W
-                </button>
-              </div>
-            </div>
-          </article>
+          <ProductCard
+            product={product}
+            selectedSize={index % 2 === 0 ? 'M' : 'S'}
+            imageClassName="aspect-[4/3]"
+            key={product.name}
+          />
         ))}
       </div>
     </section>
