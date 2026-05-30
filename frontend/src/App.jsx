@@ -4,6 +4,7 @@ import ContactPage from './pages/ContactPage.jsx';
 import HomePage from './pages/HomePage.jsx';
 import ShopPage from './pages/ShopPage.jsx';
 import TrackOrderPage from './pages/TrackOrderPage.jsx';
+import WishlistCartPage from './pages/WishlistCartPage.jsx';
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
       <Route path="/about" element={<AboutPage />} />
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/track-order" element={<TrackOrderPage />} />
+      <Route path="/wishlist" element={<WishlistCartPage />} />
     </Routes>
   );
 }

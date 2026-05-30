@@ -65,12 +65,12 @@ export default function Header() {
             <button className="icon-button" aria-label="Search">
               <Search size={21} />
             </button>
-            <button className="icon-button hidden sm:grid" aria-label="Wishlist">
+            <Link to="/wishlist" className="icon-button hidden sm:grid" aria-label="Wishlist">
               <Heart size={21} />
-            </button>
-            <button className="icon-button hidden sm:grid" aria-label="Shopping bag">
+            </Link>
+            <Link to="/wishlist#cart" className="icon-button hidden sm:grid" aria-label="Shopping bag">
               <ShoppingBag size={21} />
-            </button>
+            </Link>
             <button className="icon-button hidden sm:grid" aria-label="Account">
               <UserRound size={21} />
             </button>
