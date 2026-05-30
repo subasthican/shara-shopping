@@ -33,6 +33,14 @@
     @apply text-xs font-extrabold uppercase tracking-[0.16em] text-ink;
   }
 
+  .form-label {
+    @apply text-sm font-semibold text-ink;
+  }
+
+  .form-control {
+    @apply h-12 w-full rounded border border-[#d9d1cb] bg-white px-4 text-sm outline-none transition placeholder:text-neutral-400 focus:border-rosewood;
+  }
+
   .title-mark {
     @apply mt-4 h-px w-20 bg-gold;
     position: relative;
@@ -123,6 +131,13 @@
 
   .figure-maroon {
     background: linear-gradient(160deg, #2f211c 0 12%, #9c5e55 13% 32%, #a3202f 33% 100%);
+  }
+
+  .map-grid {
+    background-image:
+      linear-gradient(32deg, rgba(156, 177, 184, 0.55) 1px, transparent 1px),
+      linear-gradient(122deg, rgba(156, 177, 184, 0.45) 1px, transparent 1px);
+    background-size: 86px 72px, 70px 64px;
   }
 }
 
