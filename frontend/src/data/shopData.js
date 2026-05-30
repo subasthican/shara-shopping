@@ -1,0 +1,82 @@
+export const dressFilters = {
+  categories: [
+    ['Maxi Dresses', 38],
+    ['Midi Dresses', 42],
+    ['Mini Dresses', 18],
+    ['Evening Dresses', 20],
+    ['Party Dresses', 10],
+  ],
+  sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+  colors: ['#f8f0e8', '#e9d8c5', '#e99090', '#c99a8d', '#9c161f', '#172446', '#07351f', '#f4ded8', '#ffffff'],
+  occasions: [
+    ['Casual', 28],
+    ['Party', 36],
+    ['Wedding Guest', 22],
+    ['Formal', 26],
+    ['Bridal Events', 16],
+  ],
+};
+
+export const dressProducts = [
+  {
+    name: 'Blush Drape Maxi Dress',
+    price: 'LKR 17,900',
+    badge: 'New',
+    sizes: ['XS', 'S', 'M', 'L'],
+    accent: 'from-[#f1cbc8] via-[#f8eee8] to-[#d39b99]',
+    figure: 'figure-blush',
+  },
+  {
+    name: 'Floral Chiffon Midi Dress',
+    price: 'LKR 14,500',
+    badge: 'Bestseller',
+    sizes: ['XS', 'S', 'M', 'L'],
+    accent: 'from-[#f6d7c7] via-[#fbf3ea] to-[#d99c7e]',
+    figure: 'figure-floral',
+  },
+  {
+    name: 'One Shoulder Satin Dress',
+    price: 'LKR 16,800',
+    badge: 'New',
+    sizes: ['XS', 'S', 'M', 'L'],
+    accent: 'from-[#e7edf4] via-[#eef2f5] to-[#233c67]',
+    figure: 'figure-navy',
+  },
+  {
+    name: 'Lace Overlay Mini Dress',
+    price: 'LKR 12,900',
+    sizes: ['XS', 'S', 'M', 'L'],
+    accent: 'from-[#f8eee1] via-[#fffaf2] to-[#d5b88e]',
+    figure: 'figure-lace',
+  },
+  {
+    name: 'Satin Cowl Neck Dress',
+    price: 'LKR 15,900',
+    badge: 'New',
+    sizes: ['XS', 'S', 'M', 'L'],
+    accent: 'from-[#f5ddc8] via-[#f8eee8] to-[#c9966f]',
+    figure: 'figure-champagne',
+  },
+  {
+    name: 'Pleated Midi Dress',
+    price: 'LKR 13,500',
+    sizes: ['XS', 'S', 'M', 'L'],
+    accent: 'from-[#eef0dc] via-[#f9f2e7] to-[#9aa884]',
+    figure: 'figure-sage',
+  },
+  {
+    name: 'Wrap Front Maxi Dress',
+    price: 'LKR 17,200',
+    badge: 'Bestseller',
+    sizes: ['XS', 'S', 'M', 'L'],
+    accent: 'from-[#eed4cc] via-[#f6e7df] to-[#9b1f2e]',
+    figure: 'figure-maroon',
+  },
+  {
+    name: 'Puff Sleeve Midi Dress',
+    price: 'LKR 13,900',
+    sizes: ['XS', 'S', 'M', 'L'],
+    accent: 'from-[#f6d7c7] via-[#fff4eb] to-[#d99c7e]',
+    figure: 'figure-floral',
+  },
+];

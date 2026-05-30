@@ -91,6 +91,39 @@
     left: 26%;
     width: 28%;
   }
+
+  .figure-blush {
+    background: linear-gradient(160deg, #2f211c 0 12%, #b9786d 13% 32%, #efc0bd 33% 100%);
+  }
+
+  .figure-floral {
+    background:
+      radial-gradient(circle at 35% 48%, #d75662 0 4%, transparent 5%),
+      radial-gradient(circle at 62% 62%, #e5a354 0 4%, transparent 5%),
+      linear-gradient(160deg, #2f211c 0 12%, #b9786d 13% 32%, #f5d7bf 33% 100%);
+  }
+
+  .figure-navy {
+    background: linear-gradient(160deg, #2f211c 0 12%, #9c645c 13% 32%, #183a67 33% 100%);
+  }
+
+  .figure-lace {
+    background:
+      repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.45) 0 4px, transparent 4px 8px),
+      linear-gradient(160deg, #2f211c 0 12%, #a96f62 13% 32%, #f7eadc 33% 100%);
+  }
+
+  .figure-champagne {
+    background: linear-gradient(160deg, #2f211c 0 12%, #b67868 13% 32%, #e8c6a6 33% 100%);
+  }
+
+  .figure-sage {
+    background: linear-gradient(160deg, #2f211c 0 12%, #a36d5f 13% 32%, #b8bd98 33% 100%);
+  }
+
+  .figure-maroon {
+    background: linear-gradient(160deg, #2f211c 0 12%, #9c5e55 13% 32%, #a3202f 33% 100%);
+  }
 }
 
 @media (max-width: 640px) {

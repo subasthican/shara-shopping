@@ -7,8 +7,18 @@ import {
   Truck,
   UserRound,
 } from 'lucide-react';
+import { Link, NavLink } from 'react-router-dom';
 
-const navItems = ['New In', 'Dresses', 'Clothing', 'Occasion', 'Bridal', 'Sale', 'About', 'Contact'];
+const navItems = [
+  { label: 'New In', to: '/#new-arrivals' },
+  { label: 'Dresses', to: '/dresses' },
+  { label: 'Clothing', to: '/#clothing' },
+  { label: 'Occasion', to: '/#occasion' },
+  { label: 'Bridal', to: '/#bridal' },
+  { label: 'Sale', to: '/#sale' },
+  { label: 'About', to: '/#about' },
+  { label: 'Contact', to: '/#contact' },
+];
 
 export default function Header() {
   return (
@@ -29,19 +39,24 @@ export default function Header() {
 
       <nav className="border-b border-linen px-4">
         <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-4">
-          <a href="/" className="font-serif text-3xl text-[#6f4525]">
+          <Link to="/" className="font-serif text-3xl text-[#6f4525]">
             Shara Shopping
-          </a>
+          </Link>
 
           <div className="hidden items-center gap-9 text-xs font-semibold uppercase tracking-[0.18em] text-ink lg:flex">
             {navItems.map((item) => (
-              <a
-                href={`#${item.toLowerCase().replaceAll(' ', '-')}`}
-                key={item}
-                className={item === 'Sale' ? 'text-rosewood' : 'hover:text-rosewood'}
+              <NavLink
+                to={item.to}
+                key={item.label}
+                className={({ isActive }) =>
+                  [
+                    item.label === 'Sale' ? 'text-rosewood' : 'hover:text-rosewood',
+                    isActive && item.to === '/dresses' ? 'text-rosewood' : '',
+                  ].join(' ')
+                }
               >
-                {item}
-              </a>
+                {item.label}
+              </NavLink>
             ))}
           </div>
 
