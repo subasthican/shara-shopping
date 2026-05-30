@@ -18,6 +18,7 @@ const navItems = [
   { label: 'Sale', to: '/#sale' },
   { label: 'About', to: '/about' },
   { label: 'Contact', to: '/contact' },
+  { label: 'Track Order', to: '/track-order' },
 ];
 
 export default function Header() {
@@ -51,7 +52,7 @@ export default function Header() {
                 className={({ isActive }) =>
                   [
                     item.label === 'Sale' ? 'text-rosewood' : 'hover:text-rosewood',
-                    isActive && ['/dresses', '/about', '/contact'].includes(item.to) ? 'text-rosewood' : '',
+                    isActive && ['/dresses', '/about', '/contact', '/track-order'].includes(item.to) ? 'text-rosewood' : '',
                   ].join(' ')
                 }
               >
