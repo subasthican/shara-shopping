@@ -11,6 +11,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 ```bash
 cd frontend
 npm install
+cp .env.example .env
 npm run dev
 ```
 
