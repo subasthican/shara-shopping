@@ -28,8 +28,8 @@ import {
 const nav = [
   [Home, 'Dashboard', '/admin/dashboard'],
   [ClipboardCheck, 'Orders', '/admin/orders'],
-  [Package, 'Products', '#products'],
-  [Box, 'Categories', '#categories'],
+  [Package, 'Products', '/admin/products'],
+  [Box, 'Categories', '/admin/categories'],
   [UsersRound, 'Customers', '#customers'],
   [Tag, 'Offers & Coupons', '#offers'],
   [PackageCheck, 'Inventory', '#inventory'],
