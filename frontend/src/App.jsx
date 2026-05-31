@@ -7,6 +7,7 @@ import ManageOrdersPage from './pages/ManageOrdersPage.jsx';
 import ManageProductsPage from './pages/ManageProductsPage.jsx';
 import ViewOrderDetailsPage from './pages/ViewOrderDetailsPage.jsx';
 import AboutPage from './pages/AboutPage.jsx';
+import CategoryPage from './pages/CategoryPage.jsx';
 import ContactPage from './pages/ContactPage.jsx';
 import HomePage from './pages/HomePage.jsx';
 import ProductDetailsPage from './pages/ProductDetailsPage.jsx';
@@ -19,6 +20,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/dresses" element={<ShopPage />} />
+      <Route path="/categories/:categorySlug" element={<CategoryPage />} />
       <Route path="/products/:productId" element={<ProductDetailsPage />} />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/contact" element={<ContactPage />} />
