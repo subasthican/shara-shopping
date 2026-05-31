@@ -1,15 +1,70 @@
 import { Check, ChevronRight, Minus, Plus, X } from 'lucide-react';
 import { useState } from 'react';
+import { createOrder } from '../services/orderService.js';
 
 const steps = ['Product', 'Your Details', 'Delivery'];
+const defaultColour = { name: 'Blush Pink', hex: '#eeb5b6' };
 
 export default function BuyNowModal({ product, selectedSize, onClose }) {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [size, setSize] = useState(selectedSize);
+  const [customer, setCustomer] = useState({
+    fullName: '',
+    phone: '',
+    email: '',
+    whatsapp: '',
+  });
+  const [delivery, setDelivery] = useState({
+    address: '',
+    city: '',
+    district: '',
+    note: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const next = () => setStep((current) => Math.min(current + 1, 3));
   const back = () => setStep((current) => Math.max(current - 1, 1));
+  const handleCustomerChange = (field, value) => {
+    setCustomer((current) => ({ ...current, [field]: value }));
+  };
+  const handleDeliveryChange = (field, value) => {
+    setDelivery((current) => ({ ...current, [field]: value }));
+  };
+  const handleSubmit = async () => {
+    setSubmitError('');
+
+    if (!customer.fullName || !customer.phone || !customer.email || !delivery.address || !delivery.city || !delivery.district) {
+      setSubmitError('Please complete all required fields before submitting your order.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await createOrder({
+        customer,
+        delivery,
+        items: [
+          {
+            productName: product.name,
+            sku: product.sku || slugify(product.name).toUpperCase(),
+            size,
+            colour: defaultColour,
+            quantity,
+            price: parsePrice(product.price),
+          },
+        ],
+      });
+      setSubmitted(true);
+    } catch (error) {
+      setSubmitError(error.response?.data?.message || 'We could not submit your order right now. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/58 px-4 py-8">
@@ -33,14 +88,31 @@ export default function BuyNowModal({ product, selectedSize, onClose }) {
               {step === 1 && (
                 <ProductOptions
                   product={product}
-                  selectedSize={selectedSize}
+                  selectedSize={size}
+                  setSelectedSize={setSize}
                   quantity={quantity}
                   setQuantity={setQuantity}
                   onNext={next}
                 />
               )}
-              {step === 2 && <CustomerDetails onBack={back} onNext={next} />}
-              {step === 3 && <DeliveryDetails onBack={back} onSubmit={() => setSubmitted(true)} />}
+              {step === 2 && (
+                <CustomerDetails
+                  customer={customer}
+                  onBack={back}
+                  onChange={handleCustomerChange}
+                  onNext={next}
+                />
+              )}
+              {step === 3 && (
+                <DeliveryDetails
+                  delivery={delivery}
+                  isSubmitting={isSubmitting}
+                  submitError={submitError}
+                  onBack={back}
+                  onChange={handleDeliveryChange}
+                  onSubmit={handleSubmit}
+                />
+              )}
             </>
           )}
         </div>
@@ -88,14 +160,14 @@ function StepTabs({ currentStep }) {
   );
 }
 
-function ProductOptions({ product, selectedSize, quantity, setQuantity, onNext }) {
+function ProductOptions({ product, selectedSize, setSelectedSize, quantity, setQuantity, onNext }) {
   return (
     <div className="pt-6">
       <SectionLabel>Product Options</SectionLabel>
       <div className="mt-5 grid gap-5 sm:grid-cols-2">
         <label>
           <span className="form-label">Size</span>
-          <select className="form-control mt-2" defaultValue={selectedSize}>
+          <select className="form-control mt-2" value={selectedSize} onChange={(event) => setSelectedSize(event.target.value)}>
             {product.sizes.map((size) => (
               <option value={size} key={size}>
                 {size}
@@ -106,8 +178,8 @@ function ProductOptions({ product, selectedSize, quantity, setQuantity, onNext }
         <label>
           <span className="form-label">Colour</span>
           <div className="form-control mt-2 flex items-center gap-3">
-            <span className="h-7 w-7 rounded-full bg-[#eeb5b6]" />
-            Blush Pink
+            <span className="h-7 w-7 rounded-full" style={{ backgroundColor: defaultColour.hex }} />
+            {defaultColour.name}
           </div>
         </label>
       </div>
@@ -130,15 +202,15 @@ function ProductOptions({ product, selectedSize, quantity, setQuantity, onNext }
   );
 }
 
-function CustomerDetails({ onBack, onNext }) {
+function CustomerDetails({ customer, onBack, onChange, onNext }) {
   return (
     <div className="pt-6">
       <SectionLabel>Your Details</SectionLabel>
       <div className="mt-5 grid gap-5 sm:grid-cols-2">
-        <Field label="Full Name" placeholder="Your full name" required />
-        <Field label="Phone Number" placeholder="+94 7X XXX XXXX" required />
-        <Field label="Email Address" placeholder="your@email.com" required type="email" help="We'll send your order confirmation here" />
-        <Field label="WhatsApp Number" placeholder="+94 7X XXX XXXX" help="Optional, for order updates" />
+        <Field label="Full Name" placeholder="Your full name" required value={customer.fullName} onChange={(event) => onChange('fullName', event.target.value)} />
+        <Field label="Phone Number" placeholder="+94 7X XXX XXXX" required value={customer.phone} onChange={(event) => onChange('phone', event.target.value)} />
+        <Field label="Email Address" placeholder="your@email.com" required type="email" help="We'll send your order confirmation here" value={customer.email} onChange={(event) => onChange('email', event.target.value)} />
+        <Field label="WhatsApp Number" placeholder="+94 7X XXX XXXX" help="Optional, for order updates" value={customer.whatsapp} onChange={(event) => onChange('whatsapp', event.target.value)} />
       </div>
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <button className="btn-outline bg-white" onClick={onBack}>Back</button>
@@ -150,18 +222,18 @@ function CustomerDetails({ onBack, onNext }) {
   );
 }
 
-function DeliveryDetails({ onBack, onSubmit }) {
+function DeliveryDetails({ delivery, isSubmitting, submitError, onBack, onChange, onSubmit }) {
   return (
     <div className="pt-6">
       <SectionLabel>Delivery Details</SectionLabel>
       <div className="mt-5 space-y-5">
-        <Field label="Address" placeholder="House number, street address" required />
+        <Field label="Address" placeholder="House number, street address" required value={delivery.address} onChange={(event) => onChange('address', event.target.value)} />
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="City" placeholder="Enter city" required />
+          <Field label="City" placeholder="Enter city" required value={delivery.city} onChange={(event) => onChange('city', event.target.value)} />
           <label>
             <span className="form-label">District <span className="text-rosewood">*</span></span>
-            <select className="form-control mt-2">
-              <option>Select district</option>
+            <select className="form-control mt-2" value={delivery.district} onChange={(event) => onChange('district', event.target.value)}>
+              <option value="">Select district</option>
               <option>Colombo</option>
               <option>Gampaha</option>
               <option>Kandy</option>
@@ -171,14 +243,19 @@ function DeliveryDetails({ onBack, onSubmit }) {
         </div>
         <label>
           <span className="form-label">Delivery Note</span>
-          <textarea className="form-control mt-2 min-h-24 py-3" placeholder="Landmark, apartment, or special instructions (optional)" />
+          <textarea className="form-control mt-2 min-h-24 py-3" placeholder="Landmark, apartment, or special instructions (optional)" value={delivery.note} onChange={(event) => onChange('note', event.target.value)} />
           <span className="mt-2 block text-xs text-neutral-500">We will use these details to arrange your order delivery.</span>
         </label>
       </div>
+      {submitError && (
+        <p className="mt-5 rounded border border-[#f4b8c1] bg-[#fff1f3] px-4 py-3 text-sm font-semibold text-rosewood">
+          {submitError}
+        </p>
+      )}
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <button className="btn-outline bg-white" onClick={onBack}>Back</button>
-        <button className="btn-primary gap-3" onClick={onSubmit}>
-          Submit Order <ChevronRight size={18} />
+        <button className="btn-outline bg-white" onClick={onBack} disabled={isSubmitting}>Back</button>
+        <button className="btn-primary gap-3 disabled:cursor-not-allowed disabled:opacity-70" onClick={onSubmit} disabled={isSubmitting}>
+          {isSubmitting ? 'Submitting...' : 'Submit Order'} <ChevronRight size={18} />
         </button>
       </div>
     </div>
@@ -218,4 +295,12 @@ function Field({ label, required = false, help, ...props }) {
 
 function SectionLabel({ children }) {
   return <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-gold">{children}</p>;
+}
+
+function parsePrice(price) {
+  return Number(String(price).replace(/[^0-9.]/g, '')) || 0;
+}
+
+function slugify(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
