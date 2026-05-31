@@ -31,7 +31,7 @@ const nav = [
   [ClipboardCheck, 'Orders', '/admin/orders'],
   [Package, 'Products', '/admin/products'],
   [Box, 'Categories', '#categories'],
-  [UsersRound, 'Customers', '#customers'],
+  [UsersRound, 'Customers', '/admin/customers'],
   [PackageCheck, 'Inventory', '#inventory'],
   [Star, 'Reviews', '#reviews'],
   [Settings, 'Settings', '#settings'],

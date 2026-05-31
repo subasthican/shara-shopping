@@ -1,31 +1,31 @@
 import {
-  AlertTriangle,
-  Archive,
+  BarChart3,
   Box,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
-  Edit3,
+  Download,
   Eye,
   Filter,
   Home,
   LogOut,
+  Mail,
   Menu,
+  MessageCircle,
   MoreVertical,
   Package,
   PackageCheck,
-  Plus,
+  Phone,
   Search,
   Settings,
+  ShoppingBag,
   Star,
   Tag,
   Timer,
-  Trash2,
-  TrendingUp,
+  UserRound,
   UsersRound,
 } from 'lucide-react';
-import { dressProducts } from '../data/shopData.js';
 
 const nav = [
   [Home, 'Dashboard', '/admin/dashboard'],
@@ -43,51 +43,49 @@ const nav = [
 ];
 
 const stats = [
-  { icon: Package, label: 'Total Products', value: '154', color: 'bg-[#e2f1ff] text-[#1d68c4]' },
-  { icon: PackageCheck, label: 'Active Products', value: '132', color: 'bg-[#dcf5ea] text-[#15945d]' },
-  { icon: AlertTriangle, label: 'Low Stock', value: '18', color: 'bg-[#fff3d8] text-[#cc8b18]' },
-  { icon: Archive, label: 'Draft Products', value: '12', color: 'bg-[#ebe5ff] text-[#6d4dd8]' },
-  { icon: TrendingUp, label: 'Best Sellers', value: '24', color: 'bg-blush text-rosewood' },
+  { icon: UsersRound, label: 'Total Customers', value: '2,856', color: 'bg-[#ebe5ff] text-[#6d4dd8]' },
+  { icon: UserRound, label: 'New This Month', value: '184', color: 'bg-blush text-rosewood' },
+  { icon: ShoppingBag, label: 'Repeat Buyers', value: '912', color: 'bg-[#dcf5ea] text-[#15945d]' },
+  { icon: MessageCircle, label: 'WhatsApp Leads', value: '428', color: 'bg-[#e2f1ff] text-[#1d68c4]' },
+  { icon: BarChart3, label: 'Avg. Order Value', value: 'LKR 15,840', color: 'bg-[#fff3d8] text-[#cc8b18]' },
 ];
 
-const productRows = dressProducts.map((product, index) => ({
-  ...product,
-  sku: `DRE-${String(index + 1).padStart(3, '0')}`,
-  category: index % 2 === 0 ? 'Maxi Dresses' : 'Midi Dresses',
-  stock: [48, 7, 22, 3, 35, 16, 64, 11][index],
-  sales: [128, 95, 82, 71, 64, 58, 54, 49][index],
-  status: index === 3 ? 'Draft' : index === 5 ? 'Inactive' : 'Active',
-  updated: ['May 31, 2026', 'May 30, 2026', 'May 29, 2026', 'May 28, 2026'][index % 4],
-}));
+const customers = [
+  ['Heshani Perera', 'heshani@gmail.com', '077 123 4567', 'Colombo', '12', 'LKR 184,500', 'VIP', 'May 31, 2026'],
+  ['Nethmi Fernando', 'nethmi@gmail.com', '077 234 5678', 'Gampaha', '8', 'LKR 96,300', 'Active', 'May 30, 2026'],
+  ['Dinuli Rathnayake', 'dinuli@gmail.com', '077 345 6789', 'Kandy', '5', 'LKR 62,100', 'Active', 'May 29, 2026'],
+  ['Sewmini Jayawardena', 'sewmini@gmail.com', '077 456 7890', 'Galle', '3', 'LKR 29,450', 'New', 'May 28, 2026'],
+  ['Tharushi Silva', 'tharushi@gmail.com', '077 567 8901', 'Colombo', '9', 'LKR 128,900', 'VIP', 'May 27, 2026'],
+  ['Maleesha Bandara', 'maleesha@gmail.com', '077 678 9012', 'Matara', '2', 'LKR 18,700', 'New', 'May 26, 2026'],
+];
 
-export default function ManageProductsPage() {
+export default function ManageCustomersPage() {
   return (
     <div className="min-h-screen bg-[#fbf7f4] text-ink">
       <div className="grid lg:grid-cols-[280px_1fr]">
-        <ProductsSidebar />
+        <CustomersSidebar />
         <main className="min-w-0">
-          <ProductsTopbar />
+          <CustomersTopbar />
           <div className="px-4 py-7 sm:px-8">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div>
-                <h1 className="text-3xl font-extrabold">Manage Products</h1>
+                <h1 className="text-3xl font-extrabold">Manage Customers</h1>
                 <p className="mt-3 text-sm text-neutral-600">
-                  Dashboard <span className="mx-2">›</span> Products
+                  Dashboard <span className="mx-2">›</span> Customers
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
                 <button className="inline-flex h-11 items-center gap-2 rounded border border-[#ded3c9] bg-white px-5 font-semibold">
-                  Export
+                  <Download size={17} /> Export Customers
                 </button>
-                <a className="btn-primary h-11 gap-2 px-5" href="/admin/products/new">
-                  <Plus size={17} /> Add Product
-                </a>
+                <button className="btn-primary h-11 gap-2 px-5">
+                  <Mail size={17} /> Send Campaign
+                </button>
               </div>
             </div>
-
             <Stats />
             <Filters />
-            <ProductsTable />
+            <CustomersTable />
           </div>
         </main>
       </div>
@@ -95,7 +93,7 @@ export default function ManageProductsPage() {
   );
 }
 
-function ProductsSidebar() {
+function CustomersSidebar() {
   return (
     <aside className="hidden min-h-screen border-r border-[#eadfd8] bg-[#fff8f4] px-5 py-7 lg:block">
       <h2 className="font-serif text-4xl text-[#7a4c29]">Shara Shopping</h2>
@@ -104,7 +102,7 @@ function ProductsSidebar() {
         {nav.map(([Icon, label, href]) => (
           <a
             className={`flex h-12 items-center gap-4 rounded-lg px-4 text-sm font-semibold ${
-              label === 'Products' ? 'bg-blush text-rosewood' : 'hover:bg-white'
+              label === 'Customers' ? 'bg-blush text-rosewood' : 'hover:bg-white'
             }`}
             href={href}
             key={label}
@@ -114,17 +112,17 @@ function ProductsSidebar() {
         ))}
       </nav>
       <div className="mt-10 overflow-hidden rounded-lg bg-blush p-4">
-        <div className="relative h-44 rounded bg-gradient-to-br from-[#f6d7c7] to-[#d99c7e]">
+        <div className="relative h-44 rounded bg-gradient-to-br from-[#f1cbc8] to-[#d39b99]">
           <span className="product-silhouette figure-blush !h-[92%] !w-[34%]" />
         </div>
-        <p className="mt-4 font-serif text-lg leading-7">Curate every listing like a boutique window.</p>
-        <p className="mt-3 text-sm font-semibold text-rosewood">- Products</p>
+        <p className="mt-4 font-serif text-lg leading-7">Every loyal customer starts with one thoughtful order.</p>
+        <p className="mt-3 text-sm font-semibold text-rosewood">- Customers</p>
       </div>
     </aside>
   );
 }
 
-function ProductsTopbar() {
+function CustomersTopbar() {
   return (
     <header className="flex flex-wrap items-center justify-between gap-4 border-b border-[#eadfd8] bg-white px-4 py-5 sm:px-8">
       <div className="flex items-center gap-5">
@@ -133,13 +131,13 @@ function ProductsTopbar() {
         </button>
         <label className="relative block w-[min(520px,60vw)]">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={19} />
-          <input className="h-12 w-full rounded-lg border border-[#eadfd8] bg-[#fbfaf9] px-12 outline-none focus:border-rosewood" placeholder="Search products, SKU, categories..." />
+          <input className="h-12 w-full rounded-lg border border-[#eadfd8] bg-[#fbfaf9] px-12 outline-none focus:border-rosewood" placeholder="Search customers, phone, email..." />
         </label>
       </div>
       <div className="flex items-center gap-3">
-        <button className="relative icon-button bg-white shadow-sm" aria-label="Product alerts">
-          <AlertTriangle size={20} />
-          <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-rosewood text-xs font-bold text-white">3</span>
+        <button className="relative icon-button bg-white shadow-sm" aria-label="Customer messages">
+          <MessageCircle size={20} />
+          <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-rosewood text-xs font-bold text-white">7</span>
         </button>
         <span className="relative grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-[#f1cbc8] to-[#d39b99]">
           <span className="product-silhouette figure-blush !h-[88%] !w-[38%]" />
@@ -177,11 +175,10 @@ function Stats() {
 function Filters() {
   return (
     <section className="mt-6 rounded-lg border border-[#eadfd8] bg-white p-5 shadow-sm">
-      <div className="grid gap-5 lg:grid-cols-[1.3fr_0.9fr_0.9fr_0.9fr_auto_auto] lg:items-end">
-        <Control label="Search Product" icon={Search} placeholder="Search by name or SKU..." />
-        <Select label="Category" text="All Categories" />
-        <Select label="Stock" text="All Stock" />
-        <Select label="Status" text="All Status" />
+      <div className="grid gap-5 lg:grid-cols-[1.4fr_0.9fr_0.9fr_auto_auto] lg:items-end">
+        <Control label="Search Customer" icon={Search} placeholder="Search by name, email, or phone..." />
+        <Select label="District" text="All Districts" />
+        <Select label="Customer Type" text="All Customers" />
         <button className="h-12 rounded border border-[#ded3c9] px-6 font-semibold">Reset</button>
         <button className="btn-primary h-12 gap-2 px-6">
           <Filter size={17} /> Filter
@@ -214,16 +211,16 @@ function Select({ label, text }) {
   );
 }
 
-function ProductsTable() {
+function CustomersTable() {
   return (
     <section className="mt-6 overflow-hidden rounded-lg border border-[#eadfd8] bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-4 border-b border-[#eadfd8] pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold">Product List</h2>
-          <p className="mt-1 text-sm text-neutral-600">Manage catalog visibility, stock, and product details.</p>
+          <h2 className="text-xl font-bold">Customer List</h2>
+          <p className="mt-1 text-sm text-neutral-600">Review customer history, contact preferences, and lifetime value.</p>
         </div>
         <div className="flex rounded-lg bg-[#f6eee7] p-1 text-sm font-semibold">
-          {['All', 'Active', 'Draft', 'Low Stock'].map((tab, index) => (
+          {['All', 'VIP', 'Active', 'New'].map((tab, index) => (
             <button className={`h-9 rounded px-4 ${index === 0 ? 'bg-white text-rosewood shadow-sm' : 'text-neutral-600'}`} key={tab}>
               {tab}
             </button>
@@ -232,33 +229,32 @@ function ProductsTable() {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[1120px] text-left text-sm">
+        <table className="w-full min-w-[1080px] text-left text-sm">
           <thead>
             <tr className="border-b border-[#eadfd8] text-neutral-700">
               <th className="w-10 py-4">
                 <span className="block h-4 w-4 rounded border border-[#d8cec4]" />
               </th>
-              <th>Product</th>
-              <th>SKU</th>
-              <th>Category</th>
-              <th>Price</th>
-              <th>Stock</th>
-              <th>Sales</th>
-              <th>Status</th>
-              <th>Updated</th>
+              <th>Customer</th>
+              <th>Contact</th>
+              <th>District</th>
+              <th>Orders</th>
+              <th>Lifetime Value</th>
+              <th>Type</th>
+              <th>Last Order</th>
               <th className="text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#eadfd8]">
-            {productRows.map((product) => (
-              <ProductRow product={product} key={product.sku} />
+            {customers.map((customer) => (
+              <CustomerRow customer={customer} key={customer[1]} />
             ))}
           </tbody>
         </table>
       </div>
 
       <div className="flex flex-col gap-4 border-t border-[#eadfd8] pt-5 text-sm text-neutral-600 sm:flex-row sm:items-center sm:justify-between">
-        <p>Showing 1 to 8 of 154 products</p>
+        <p>Showing 1 to 6 of 2,856 customers</p>
         <div className="flex items-center gap-2">
           <PageButton>
             <ChevronLeft size={16} />
@@ -269,12 +265,12 @@ function ProductsTable() {
             </PageButton>
           ))}
           <span className="px-2">...</span>
-          <PageButton>20</PageButton>
+          <PageButton>476</PageButton>
           <PageButton>
             <ChevronRight size={16} />
           </PageButton>
           <button className="ml-3 h-10 rounded border border-[#ded3c9] px-4">
-            8 / page <ChevronDown className="inline" size={15} />
+            10 / page <ChevronDown className="inline" size={15} />
           </button>
         </div>
       </div>
@@ -282,48 +278,45 @@ function ProductsTable() {
   );
 }
 
-function ProductRow({ product }) {
+function CustomerRow({ customer }) {
+  const [name, email, phone, district, orders, value, type, lastOrder] = customer;
+
   return (
     <tr>
       <td className="py-4">
         <span className="block h-4 w-4 rounded border border-[#d8cec4]" />
       </td>
       <td>
-        <div className="grid grid-cols-[58px_1fr] items-center gap-4">
-          <span className={`relative h-16 overflow-hidden rounded bg-gradient-to-br ${product.accent}`}>
-            <span className={`product-silhouette ${product.figure || ''} !h-[90%] !w-[42%]`} />
+        <div className="flex items-center gap-3">
+          <span className="grid h-12 w-12 place-items-center rounded-full bg-blush font-serif text-xl font-bold text-rosewood">
+            {name.charAt(0)}
           </span>
           <div>
-            <p className="font-bold">{product.name}</p>
-            <p className="mt-1 text-neutral-600">{product.sizes.join(', ')} sizes</p>
+            <p className="font-bold">{name}</p>
+            <p className="mt-1 text-neutral-600">Customer since 2025</p>
           </div>
         </div>
       </td>
-      <td className="font-semibold">{product.sku}</td>
-      <td>{product.category}</td>
-      <td className="font-semibold">{product.price}</td>
       <td>
-        <span className={product.stock < 10 ? 'font-bold text-[#d96b00]' : 'font-semibold text-[#12833c]'}>
-          {product.stock} pcs
-        </span>
+        <p className="flex items-center gap-2"><Mail size={15} /> {email}</p>
+        <p className="mt-1 flex items-center gap-2 text-neutral-600"><Phone size={15} /> {phone}</p>
       </td>
-      <td>{product.sales} sold</td>
+      <td>{district}</td>
+      <td className="font-semibold">{orders}</td>
+      <td className="font-semibold">{value}</td>
       <td>
-        <StatusPill status={product.status} />
+        <TypePill type={type} />
       </td>
-      <td className="text-neutral-600">{product.updated}</td>
+      <td className="text-neutral-600">{lastOrder}</td>
       <td>
         <div className="flex justify-end gap-2">
-          <a className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" href={`/products/${slugify(product.name)}`} aria-label={`View ${product.name}`}>
+          <button className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" aria-label={`View ${name}`}>
             <Eye size={16} />
-          </a>
-          <a className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" href="/admin/products/new" aria-label={`Edit ${product.name}`}>
-            <Edit3 size={16} />
-          </a>
-          <button className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9] text-rosewood" aria-label={`Delete ${product.name}`}>
-            <Trash2 size={16} />
           </button>
-          <button className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" aria-label={`More actions for ${product.name}`}>
+          <button className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" aria-label={`Message ${name}`}>
+            <MessageCircle size={16} />
+          </button>
+          <button className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" aria-label={`More actions for ${name}`}>
             <MoreVertical size={16} />
           </button>
         </div>
@@ -332,14 +325,14 @@ function ProductRow({ product }) {
   );
 }
 
-function StatusPill({ status }) {
+function TypePill({ type }) {
   const styles = {
+    VIP: 'bg-blush text-rosewood',
     Active: 'bg-[#d8f8df] text-[#12833c]',
-    Draft: 'bg-[#fff0d8] text-[#c76b11]',
-    Inactive: 'bg-[#ffe0e8] text-[#c83248]',
+    New: 'bg-[#e2f1ff] text-[#1d68c4]',
   };
 
-  return <span className={`rounded px-3 py-1 text-xs font-bold ${styles[status]}`}>{status}</span>;
+  return <span className={`rounded px-3 py-1 text-xs font-bold ${styles[type]}`}>{type}</span>;
 }
 
 function PageButton({ children, active = false }) {
@@ -348,8 +341,4 @@ function PageButton({ children, active = false }) {
       {children}
     </button>
   );
-}
-
-function slugify(value) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
