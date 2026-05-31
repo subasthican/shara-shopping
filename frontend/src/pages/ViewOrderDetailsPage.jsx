@@ -1,0 +1,299 @@
+import {
+  ArrowLeft,
+  Box,
+  ChevronDown,
+  ClipboardCheck,
+  Download,
+  Edit3,
+  Home,
+  LogOut,
+  Mail,
+  MapPin,
+  MoreVertical,
+  Package,
+  PackageCheck,
+  Printer,
+  RefreshCw,
+  Search,
+  Send,
+  Settings,
+  ShoppingBag,
+  Star,
+  Timer,
+  Truck,
+  UserRound,
+  UsersRound,
+  XCircle,
+} from 'lucide-react';
+
+const nav = [
+  [Home, 'Dashboard', '/admin/dashboard'],
+  [ClipboardCheck, 'Orders', '/admin/orders'],
+  [Package, 'Products', '#products'],
+  [Box, 'Categories', '#categories'],
+  [UsersRound, 'Customers', '#customers'],
+  [PackageCheck, 'Inventory', '#inventory'],
+  [Star, 'Reviews', '#reviews'],
+  [Settings, 'Settings', '#settings'],
+  [UsersRound, 'Users', '#users'],
+  [LogOut, 'Logout', '#logout'],
+];
+
+const details = [
+  ['Order Date', 'May 26, 2025 10:30 AM'],
+  ['Payment Method', 'Card'],
+  ['Payment Status', 'Paid'],
+  ['Shipping Method', 'Standard Delivery'],
+  ['Order Status', 'Delivered'],
+];
+
+const delivery = [
+  ['Recipient Name', 'Heshani Perera'],
+  ['Phone', '077 123 4567'],
+  ['Address', '23/4, Flower Road, Borella, Colombo 08, Sri Lanka'],
+  ['Delivered On', 'May 28, 2025 11:45 AM'],
+];
+
+const timeline = [
+  ['Order Placed', 'May 26, 2025 10:30 AM', 'bg-[#17a34a]'],
+  ['Payment Confirmed', 'May 26, 2025 10:31 AM', 'bg-[#17a34a]'],
+  ['Processing', 'May 26, 2025 02:15 PM', 'bg-[#f59e0b]'],
+  ['Shipped', 'May 27, 2025 05:20 PM', 'bg-[#7c3aed]'],
+  ['Delivered', 'May 28, 2025 11:45 AM', 'bg-[#17a34a]'],
+];
+
+const items = [
+  ['Floral Chiffon Midi Dress', 'DRE-CHIF-001', 'Size: M  |  Color: Peach', 'LKR 5,625', '1', 'LKR 5,625', 'figure-floral'],
+  ['Lace Overlay Mini Dress', 'DRE-LACE-002', 'Size: S  |  Color: Mint Green', 'LKR 5,250', '1', 'LKR 5,250', 'figure-sage'],
+  ['One Shoulder Satin Dress', 'DRE-SATIN-003', 'Size: M  |  Color: Pink', 'LKR 5,475', '1', 'LKR 5,475', 'figure-blush'],
+];
+
+export default function ViewOrderDetailsPage() {
+  return (
+    <div className="min-h-screen bg-[#fbf7f4] text-ink">
+      <div className="grid lg:grid-cols-[280px_1fr]">
+        <Sidebar />
+        <main className="min-w-0">
+          <Topbar />
+          <div className="px-4 py-6 sm:px-8">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div>
+                <a className="inline-flex h-11 items-center gap-2 rounded border border-[#ded3c9] bg-white px-4 text-sm font-semibold" href="/admin/orders">
+                  <ArrowLeft size={17} /> Back to Orders
+                </a>
+                <h1 className="mt-5 text-3xl font-extrabold">Order Details</h1>
+                <p className="mt-2 text-xl font-semibold">
+                  Order ID: <span className="font-extrabold">#SH2505261</span>
+                  <span className="ml-4 rounded bg-[#d8f8df] px-4 py-1 text-sm font-bold text-[#12833c]">Delivered</span>
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <button className="inline-flex h-11 items-center gap-2 rounded border border-[#ded3c9] bg-white px-5 font-semibold">
+                  <Printer size={17} /> Print Invoice
+                </button>
+                <button className="btn-primary h-11 gap-2">
+                  <MoreVertical size={17} /> More Actions <ChevronDown size={16} />
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_340px]">
+              <div className="space-y-6">
+                <InfoGrid />
+                <OrderItems />
+              </div>
+              <Aside />
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function Sidebar() {
+  return (
+    <aside className="hidden min-h-screen border-r border-[#eadfd8] bg-[#fff8f4] px-5 py-7 lg:block">
+      <h2 className="font-serif text-4xl text-[#7a4c29]">Shara Shopping</h2>
+      <p className="mt-3 text-xs font-extrabold uppercase tracking-[0.34em]">Admin Panel</p>
+      <nav className="mt-10 space-y-2">
+        {nav.map(([Icon, label, href]) => (
+          <a className={`flex h-12 items-center gap-4 rounded-lg px-4 text-sm font-semibold ${label === 'Orders' ? 'bg-blush text-rosewood' : 'hover:bg-white'}`} href={href} key={label}>
+            <Icon size={19} /> {label}
+          </a>
+        ))}
+      </nav>
+      <div className="mt-10 overflow-hidden rounded-lg bg-blush p-4">
+        <div className="relative h-44 rounded bg-gradient-to-br from-[#f6d7c7] to-[#d99c7e]">
+          <span className="product-silhouette figure-blush !h-[92%] !w-[34%]" />
+        </div>
+        <p className="mt-4 font-serif text-lg leading-7">Style is a way to say who you are without speaking.</p>
+        <p className="mt-3 text-sm font-semibold text-rosewood">- Admin</p>
+      </div>
+    </aside>
+  );
+}
+
+function Topbar() {
+  return (
+    <header className="flex flex-wrap items-center justify-between gap-4 border-b border-[#eadfd8] bg-white px-4 py-5 sm:px-8">
+      <div className="flex items-center gap-5">
+        <button className="icon-button bg-white" aria-label="Open admin menu"><MoreVertical size={23} /></button>
+        <label className="relative block w-[min(520px,60vw)]">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={19} />
+          <input className="h-12 w-full rounded-lg border border-[#eadfd8] bg-[#fbfaf9] px-12 outline-none focus:border-rosewood" placeholder="Search orders, customers, products..." />
+        </label>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="relative grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-[#f1cbc8] to-[#d39b99]">
+          <span className="product-silhouette figure-blush !h-[88%] !w-[38%]" />
+        </span>
+        <div><p className="font-bold">Admin</p><p className="text-sm text-neutral-600">Super Admin</p></div>
+        <ChevronDown size={17} />
+      </div>
+    </header>
+  );
+}
+
+function InfoGrid() {
+  return (
+    <section className="grid gap-6 rounded-lg border border-[#eadfd8] bg-white p-6 shadow-sm xl:grid-cols-4">
+      <InfoBlock title="Customer Information" icon={UserRound}>
+        <div className="flex gap-4">
+          <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-[#f1cbc8] to-[#d39b99]">
+            <span className="product-silhouette figure-blush !h-[90%] !w-[38%]" />
+          </span>
+          <div>
+            <p className="font-bold">Heshani Perera</p>
+            <p className="text-sm text-neutral-600">heshani@gmail.com</p>
+            <p className="text-sm text-neutral-600">077 123 4567</p>
+          </div>
+        </div>
+        <p className="mt-6 flex gap-3 leading-6"><MapPin className="shrink-0 text-rosewood" size={18} />23/4, Flower Road, Borella, Colombo 08, Sri Lanka</p>
+      </InfoBlock>
+      <InfoBlock title="Order Information" icon={ClipboardCheck}>
+        {details.map(([label, value]) => <Detail label={label} value={value} key={label} />)}
+      </InfoBlock>
+      <InfoBlock title="Delivery Information" icon={Truck}>
+        {delivery.map(([label, value]) => <Detail label={label} value={value} key={label} />)}
+      </InfoBlock>
+      <InfoBlock title="Order Timeline" icon={Timer}>
+        <div className="space-y-4">
+          {timeline.map(([title, time, color]) => (
+            <div className="grid grid-cols-[16px_1fr] gap-4" key={title}>
+              <span className={`mt-1 h-3 w-3 rounded-full ${color}`} />
+              <div><p className="font-bold">{title}</p><p className="text-sm text-neutral-600">{time}</p></div>
+            </div>
+          ))}
+        </div>
+      </InfoBlock>
+    </section>
+  );
+}
+
+function InfoBlock({ title, icon: Icon, children }) {
+  return (
+    <div className="border-[#eadfd8] xl:border-r xl:pr-5 xl:last:border-r-0">
+      <h2 className="mb-5 flex items-center gap-3 font-bold"><Icon size={18} /> {title}</h2>
+      {children}
+    </div>
+  );
+}
+
+function Detail({ label, value }) {
+  return (
+    <div className="mb-4">
+      <p className="font-bold">{label}</p>
+      <p className="mt-1 text-neutral-700">{value}</p>
+    </div>
+  );
+}
+
+function OrderItems() {
+  return (
+    <section className="rounded-lg border border-[#eadfd8] bg-white p-6 shadow-sm">
+      <h2 className="text-xl font-bold">Order Items</h2>
+      <div className="mt-5 overflow-x-auto">
+        <table className="w-full min-w-[760px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-[#eadfd8]">
+              <th className="py-3">Product</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th className="text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#eadfd8]">
+            {items.map(([name, sku, meta, price, qty, total, figure]) => (
+              <tr key={sku}>
+                <td className="py-4">
+                  <div className="flex items-center gap-4">
+                    <span className="relative h-16 w-14 shrink-0 overflow-hidden rounded bg-gradient-to-br from-[#f6d7c7] to-[#d99c7e]">
+                      <span className={`product-silhouette ${figure} !h-[90%] !w-[42%]`} />
+                    </span>
+                    <div><p className="font-bold">{name}</p><p className="text-neutral-600">SKU: {sku}</p><p className="text-neutral-600">{meta}</p></div>
+                  </div>
+                </td>
+                <td>{price}</td>
+                <td>{qty}</td>
+                <td className="text-right font-semibold">{total}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="ml-auto mt-5 max-w-sm space-y-3 text-sm">
+        <Line label="Subtotal" value="LKR 16,350" />
+        <Line label="Discount (WELCOME10)" value="- LKR 1,635" danger />
+        <Line label="Shipping Charge" value="LKR 250" />
+        <Line label="Tax (15%)" value="LKR 2,813" />
+        <div className="flex justify-between border-t border-dashed border-[#d9ccc2] pt-4 text-xl font-extrabold"><span>Total Amount</span><span>LKR 18,900</span></div>
+      </div>
+    </section>
+  );
+}
+
+function Aside() {
+  return (
+    <aside className="space-y-5">
+      <Card title="Order Summary">
+        <Line label="Subtotal (3 Items)" value="LKR 16,875" />
+        <Line label="Discount" value="- LKR 1,975" danger />
+        <Line label="Shipping Charge" value="LKR 250" />
+        <Line label="Tax (15%)" value="LKR 2,813" />
+        <div className="mt-4 flex justify-between border-t border-dashed border-[#d9ccc2] pt-4 text-xl font-extrabold"><span>Total Amount</span><span>LKR 18,900</span></div>
+        <p className="mt-4"><span className="rounded bg-[#d8f8df] px-4 py-1 text-sm font-bold text-[#12833c]">Paid</span> <span className="text-neutral-600">via Card</span></p>
+        <button className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded border border-[#ded3c9] font-semibold"><Download size={17} /> Download Invoice</button>
+      </Card>
+      <Card title="Notes" action={<Edit3 size={17} />}>
+        <p className="leading-6 text-neutral-700">Please deliver in the morning if possible. Call before delivery.</p>
+      </Card>
+      <Card title="Customer Notes">
+        <p className="leading-6 text-neutral-700">I love this collection! Thank you so much.</p>
+      </Card>
+      <Card title="Order Actions">
+        <Action icon={RefreshCw} label="Update Order Status" />
+        <Action icon={Truck} label="Track Order" />
+        <Action icon={Mail} label="Send Email to Customer" />
+        <Action icon={XCircle} label="Cancel Order" danger />
+      </Card>
+    </aside>
+  );
+}
+
+function Card({ title, children, action }) {
+  return (
+    <section className="rounded-lg border border-[#eadfd8] bg-white p-6 shadow-sm">
+      <div className="mb-4 flex items-center justify-between"><h2 className="text-xl font-bold">{title}</h2>{action && <button className="icon-button border border-[#ded3c9]">{action}</button>}</div>
+      <div className="space-y-3">{children}</div>
+    </section>
+  );
+}
+
+function Action({ icon: Icon, label, danger = false }) {
+  return <button className={`inline-flex h-11 w-full items-center gap-3 rounded border px-4 font-semibold ${danger ? 'border-rosewood text-rosewood' : 'border-[#ded3c9]'}`}><Icon size={17} /> {label}</button>;
+}
+
+function Line({ label, value, danger = false }) {
+  return <div className="flex justify-between"><span>{label}</span><span className={danger ? 'font-bold text-rosewood' : 'font-semibold'}>{value}</span></div>;
+}
