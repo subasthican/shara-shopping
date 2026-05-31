@@ -54,7 +54,7 @@ function Hero() {
             <a href="#new-arrivals" className="btn-primary">
               Shop Now
             </a>
-            <a href="#occasion" className="btn-outline">
+            <a href="/occasion" className="btn-outline">
               Explore Collection
             </a>
           </div>
@@ -175,7 +175,7 @@ function OccasionBanner() {
           <p className="text-xs font-semibold uppercase tracking-[0.36em] text-neutral-600">Featured Collection</p>
           <h2 className="mt-3 font-serif text-5xl uppercase leading-none">Occasion Edit</h2>
           <p className="mt-3 text-neutral-700">Sophisticated styles for every special moment.</p>
-          <a href="#occasion-edit" className="btn-primary mt-6 w-fit">
+          <a href="/occasion" className="btn-primary mt-6 w-fit">
             Explore The Collection
           </a>
         </div>

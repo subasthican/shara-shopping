@@ -10,6 +10,7 @@ import AboutPage from './pages/AboutPage.jsx';
 import CategoryPage from './pages/CategoryPage.jsx';
 import ContactPage from './pages/ContactPage.jsx';
 import HomePage from './pages/HomePage.jsx';
+import OccasionPage from './pages/OccasionPage.jsx';
 import ProductDetailsPage from './pages/ProductDetailsPage.jsx';
 import ShopPage from './pages/ShopPage.jsx';
 import TrackOrderPage from './pages/TrackOrderPage.jsx';
@@ -21,6 +22,7 @@ export default function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/dresses" element={<ShopPage />} />
       <Route path="/categories/:categorySlug" element={<CategoryPage />} />
+      <Route path="/occasion" element={<OccasionPage />} />
       <Route path="/products/:productId" element={<ProductDetailsPage />} />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/contact" element={<ContactPage />} />
