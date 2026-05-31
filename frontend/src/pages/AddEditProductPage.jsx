@@ -30,7 +30,7 @@ import {
 const nav = [
   [Home, 'Dashboard', '/admin/dashboard'],
   [ClipboardCheck, 'Orders', '/admin/orders'],
-  [Package, 'Products', '/admin/products/new'],
+  [Package, 'Products', '/admin/products'],
   [Box, 'Categories', '/admin/categories'],
   [UsersRound, 'Customers', '#customers'],
   [Tag, 'Offers & Coupons', '#offers'],
