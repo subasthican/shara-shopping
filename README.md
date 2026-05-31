@@ -13,3 +13,12 @@ cd frontend
 npm install
 npm run dev
 ```
+
+## Run backend
+
+```bash
+cd backend
+npm install
+cp .env.example .env
+npm run dev
+```
