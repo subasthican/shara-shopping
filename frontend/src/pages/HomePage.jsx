@@ -5,6 +5,7 @@ import {
   Sparkles,
   UserRoundCheck,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import heroImage from '../assets/home-hero.png';
 import Footer from '../components/Footer.jsx';
 import Header from '../components/Header.jsx';
@@ -93,8 +94,8 @@ function CategoryGrid() {
       <SectionTitle title="Shop by Category" />
       <div className="mx-auto mt-7 grid max-w-7xl grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
         {shopCategories.map((category) => (
-          <a
-            href={`#${category.name.toLowerCase()}`}
+          <Link
+            to={`/categories/${slugify(category.name)}`}
             key={category.name}
             className={`category-tile bg-gradient-to-br ${category.tone}`}
           >
@@ -102,7 +103,7 @@ function CategoryGrid() {
             <span className="relative z-10 mt-auto pb-5 text-sm font-extrabold uppercase tracking-[0.08em] text-white drop-shadow">
               {category.name}
             </span>
-          </a>
+          </Link>
         ))}
       </div>
     </section>
@@ -199,4 +200,8 @@ function DressIcon() {
       <span className="absolute bottom-0 left-0 h-4 w-4 border border-current" style={{ clipPath: 'polygon(50% 0, 100% 100%, 0 100%)' }} />
     </span>
   );
+}
+
+function slugify(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
