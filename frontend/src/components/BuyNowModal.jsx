@@ -24,7 +24,7 @@ export default function BuyNowModal({ product, selectedSize, onClose }) {
         <ProductSummary product={product} />
 
         <div className="border-t border-[#eadfd8] px-7 py-5">
-          <StepTabs currentStep={step} />
+          <StepTabs currentStep={submitted ? 3 : step} />
 
           {submitted ? (
             <SuccessStep onClose={onClose} />
@@ -188,16 +188,16 @@ function DeliveryDetails({ onBack, onSubmit }) {
 function SuccessStep({ onClose }) {
   return (
     <div className="pt-6">
-      <div className="rounded-lg border border-[#c7e3c6] bg-[#f4fbf1] px-6 py-10 text-center">
-        <span className="mx-auto grid h-20 w-20 place-items-center rounded-full border-4 border-[#9fd29d] text-[#15803d]">
-          <Check size={42} />
+      <div className="rounded-lg border border-[#b7d8b2] bg-gradient-to-br from-[#f8fff5] to-[#eef9ea] px-6 py-10 text-center shadow-sm">
+        <span className="mx-auto grid h-20 w-20 place-items-center rounded-full border-4 border-[#9bd29b] bg-[#f7fff4] text-[#15803d]">
+          <Check size={44} strokeWidth={2.4} />
         </span>
-        <h3 className="mt-6 text-2xl font-extrabold">Order submitted successfully!</h3>
-        <p className="mt-4 text-neutral-700">
+        <h3 className="mt-6 text-2xl font-extrabold text-ink">Order submitted successfully!</h3>
+        <p className="mx-auto mt-4 max-w-md text-neutral-700">
           We will contact you within 24 hours by phone or WhatsApp.
         </p>
       </div>
-      <button className="btn-outline mt-6 w-full bg-white" onClick={onClose}>
+      <button className="btn-outline mt-6 w-full border-rosewood bg-white text-rosewood" onClick={onClose}>
         Continue Shopping
       </button>
     </div>
