@@ -1,7 +1,10 @@
 import { Eye, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import heroImage from '../assets/home-hero.png';
 import Footer from '../components/Footer.jsx';
 import Header from '../components/Header.jsx';
+import { loginAdmin } from '../services/authService.js';
 
 export default function AdminLoginPage() {
   return (
@@ -35,6 +38,36 @@ function AdminPortalPanel() {
 }
 
 function LoginPanel() {
+  const navigate = useNavigate();
+  const [credentials, setCredentials] = useState({ email: '', password: '' });
+  const [feedback, setFeedback] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const updateField = (field, value) => {
+    setCredentials((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setFeedback('');
+
+    if (!credentials.email || !credentials.password) {
+      setFeedback('Please enter your email and password.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await loginAdmin(credentials);
+      navigate('/admin/dashboard');
+    } catch (error) {
+      setFeedback(error.response?.data?.message || 'Unable to login. Please check your credentials.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <section className="flex min-h-[620px] items-center rounded-lg border border-[#eadfd8] bg-white px-6 py-10 shadow-soft sm:px-12">
       <div className="mx-auto w-full max-w-xl">
@@ -45,12 +78,18 @@ function LoginPanel() {
           <p className="mt-7 text-neutral-700">Sign in to access the Shara Shopping admin dashboard.</p>
         </div>
 
-        <form className="mt-8 space-y-6">
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <label className="block">
             <span className="form-label">Email Address</span>
             <span className="relative mt-2 block">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={20} />
-              <input className="form-control h-14 pl-12" placeholder="Enter your email address" type="email" />
+              <input
+                className="form-control h-14 pl-12"
+                placeholder="Enter your email address"
+                type="email"
+                value={credentials.email}
+                onChange={(event) => updateField('email', event.target.value)}
+              />
             </span>
           </label>
 
@@ -58,7 +97,13 @@ function LoginPanel() {
             <span className="form-label">Password</span>
             <span className="relative mt-2 block">
               <LockKeyhole className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={20} />
-              <input className="form-control h-14 px-12" placeholder="Enter your password" type="password" />
+              <input
+                className="form-control h-14 px-12"
+                placeholder="Enter your password"
+                type="password"
+                value={credentials.password}
+                onChange={(event) => updateField('password', event.target.value)}
+              />
               <Eye className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-600" size={20} />
             </span>
           </label>
@@ -71,7 +116,15 @@ function LoginPanel() {
             <a href="#forgot-password" className="font-semibold text-rosewood">Forgot password?</a>
           </div>
 
-          <button className="btn-primary h-14 w-full" type="submit">Login</button>
+          {feedback && (
+            <p className="rounded border border-[#f4b8c1] bg-[#fff1f3] px-4 py-3 text-sm font-semibold text-rosewood">
+              {feedback}
+            </p>
+          )}
+
+          <button className="btn-primary h-14 w-full disabled:cursor-not-allowed disabled:opacity-70" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Logging in...' : 'Login'}
+          </button>
           <a href="/" className="btn-outline h-14 w-full bg-white">Back To Store</a>
 
           <p className="flex items-center justify-center gap-2 text-sm text-neutral-700">
