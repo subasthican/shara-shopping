@@ -4,3 +4,10 @@ export async function createOrder(orderPayload) {
   const { data } = await apiClient.post('/orders', orderPayload);
   return data;
 }
+
+export async function trackOrder(orderId, contact) {
+  const { data } = await apiClient.get(`/orders/track/${orderId}`, {
+    params: { contact },
+  });
+  return data;
+}
