@@ -258,7 +258,7 @@ function OrderRow({ row }) {
       <td><StatusPill status={status} /><p className="mt-1 text-neutral-600">{statusDate}</p></td>
       <td>
         <div className="flex justify-end gap-2">
-          <button className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" aria-label={`View ${id}`}><Eye size={16} /></button>
+          <a className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" href={`/admin/orders/${id.replace('#', '')}`} aria-label={`View ${id}`}><Eye size={16} /></a>
           <button className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" aria-label={`More actions for ${id}`}><MoreVertical size={16} /></button>
         </div>
       </td>
