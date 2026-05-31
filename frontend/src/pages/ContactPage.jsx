@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  CheckCircle2,
   Headphones,
   Mail,
   MapPin,
@@ -8,9 +9,11 @@ import {
   Send,
   ShieldCheck,
 } from 'lucide-react';
+import { useState } from 'react';
 import boutiqueImage from '../assets/about-boutique.png';
 import Footer from '../components/Footer.jsx';
 import Header from '../components/Header.jsx';
+import { createContactMessage } from '../services/contactService.js';
 
 const contactOptions = [
   { icon: Phone, title: 'Call Us', main: '077 123 4567', note: 'Mon - Sat: 9.00 AM - 6.00 PM' },
@@ -87,30 +90,78 @@ function ContactBody() {
 }
 
 function MessageForm() {
+  const [form, setForm] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState({ type: '', message: '' });
+
+  const updateField = (field, value) => {
+    setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setFeedback({ type: '', message: '' });
+
+    if (!form.fullName || !form.email || !form.subject || !form.message) {
+      setFeedback({ type: 'error', message: 'Please complete all required fields before sending your message.' });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await createContactMessage(form);
+      setForm({ fullName: '', email: '', phone: '', subject: '', message: '' });
+      setFeedback({ type: 'success', message: 'Message sent successfully. We will reply within 24 hours.' });
+    } catch (error) {
+      setFeedback({ type: 'error', message: error.response?.data?.message || 'We could not send your message right now. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <section className="rounded-lg border border-[#eadfd8] bg-gradient-to-br from-white to-[#fff7f4] p-7 shadow-sm">
       <h2 className="font-serif text-3xl">Send Us a Message</h2>
       <p className="mt-3 text-sm text-neutral-700">Fill out the form below and we&apos;ll get back to you as soon as possible.</p>
-      <form className="mt-6 space-y-5">
+      <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Your Name" required placeholder="Enter your name" />
-          <Field label="Your Email" required placeholder="Enter your email" type="email" />
+          <Field label="Your Name" required placeholder="Enter your name" value={form.fullName} onChange={(event) => updateField('fullName', event.target.value)} />
+          <Field label="Your Email" required placeholder="Enter your email" type="email" value={form.email} onChange={(event) => updateField('email', event.target.value)} />
         </div>
+        <Field label="Phone Number" placeholder="+94 7X XXX XXXX" value={form.phone} onChange={(event) => updateField('phone', event.target.value)} />
         <label className="block">
           <span className="form-label">Subject <span className="text-rosewood">*</span></span>
-          <select className="form-control mt-2">
-            <option>Select a subject</option>
+          <select className="form-control mt-2" value={form.subject} onChange={(event) => updateField('subject', event.target.value)}>
+            <option value="">Select a subject</option>
             <option>Order support</option>
             <option>Product question</option>
             <option>Delivery information</option>
+            <option>General inquiry</option>
           </select>
         </label>
         <label className="block">
           <span className="form-label">Your Message <span className="text-rosewood">*</span></span>
-          <textarea className="form-control mt-2 min-h-32 resize-y py-3" placeholder="Type your message here..." />
+          <textarea className="form-control mt-2 min-h-32 resize-y py-3" placeholder="Type your message here..." value={form.message} onChange={(event) => updateField('message', event.target.value)} />
         </label>
-        <button className="btn-primary gap-3" type="submit">
-          <Send size={17} /> Send Message
+        {feedback.message && (
+          <p className={`flex items-center gap-2 rounded border px-4 py-3 text-sm font-semibold ${
+            feedback.type === 'success'
+              ? 'border-[#b7d8b2] bg-[#f3fbef] text-[#15803d]'
+              : 'border-[#f4b8c1] bg-[#fff1f3] text-rosewood'
+          }`}>
+            {feedback.type === 'success' && <CheckCircle2 size={17} />}
+            {feedback.message}
+          </p>
+        )}
+        <button className="btn-primary gap-3 disabled:cursor-not-allowed disabled:opacity-70" type="submit" disabled={isSubmitting}>
+          <Send size={17} /> {isSubmitting ? 'Sending...' : 'Send Message'}
         </button>
         <p className="flex items-center gap-2 text-xs text-neutral-600">
           <ShieldCheck size={15} className="text-rosewood" /> We respect your privacy. Your information is safe with us.
