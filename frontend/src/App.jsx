@@ -3,6 +3,7 @@ import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
 import AdminLoginPage from './pages/AdminLoginPage.jsx';
 import AddEditProductPage from './pages/AddEditProductPage.jsx';
 import ManageCategoriesPage from './pages/ManageCategoriesPage.jsx';
+import ManageCustomersPage from './pages/ManageCustomersPage.jsx';
 import ManageOrdersPage from './pages/ManageOrdersPage.jsx';
 import ManageProductsPage from './pages/ManageProductsPage.jsx';
 import ViewOrderDetailsPage from './pages/ViewOrderDetailsPage.jsx';
@@ -32,6 +33,7 @@ export default function App() {
       <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
       <Route path="/admin/products" element={<ManageProductsPage />} />
       <Route path="/admin/categories" element={<ManageCategoriesPage />} />
+      <Route path="/admin/customers" element={<ManageCustomersPage />} />
       <Route path="/admin/orders" element={<ManageOrdersPage />} />
       <Route path="/admin/orders/:orderId" element={<ViewOrderDetailsPage />} />
       <Route path="/admin/products/new" element={<AddEditProductPage />} />

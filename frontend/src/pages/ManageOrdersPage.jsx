@@ -30,7 +30,7 @@ const nav = [
   [ClipboardCheck, 'Orders', '/admin/orders'],
   [Package, 'Products', '/admin/products'],
   [Box, 'Categories', '/admin/categories'],
-  [UsersRound, 'Customers', '#customers'],
+  [UsersRound, 'Customers', '/admin/customers'],
   [Tag, 'Offers & Coupons', '#offers'],
   [PackageCheck, 'Inventory', '#inventory'],
   [Star, 'Reviews', '#reviews'],
