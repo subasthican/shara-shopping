@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
 import AdminLoginPage from './pages/AdminLoginPage.jsx';
+import AddEditProductPage from './pages/AddEditProductPage.jsx';
 import ManageCategoriesPage from './pages/ManageCategoriesPage.jsx';
 import ManageOrdersPage from './pages/ManageOrdersPage.jsx';
 import ViewOrderDetailsPage from './pages/ViewOrderDetailsPage.jsx';
@@ -25,6 +26,7 @@ export default function App() {
       <Route path="/admin/categories" element={<ManageCategoriesPage />} />
       <Route path="/admin/orders" element={<ManageOrdersPage />} />
       <Route path="/admin/orders/:orderId" element={<ViewOrderDetailsPage />} />
+      <Route path="/admin/products/new" element={<AddEditProductPage />} />
     </Routes>
   );
 }
