@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   Archive,
@@ -26,6 +27,7 @@ import {
   UsersRound,
 } from 'lucide-react';
 import { dressProducts } from '../data/shopData.js';
+import { getProducts } from '../services/productService.js';
 
 const nav = [
   [Home, 'Dashboard', '/admin/dashboard'],
@@ -42,14 +44,6 @@ const nav = [
   [LogOut, 'Logout', '#logout'],
 ];
 
-const stats = [
-  { icon: Package, label: 'Total Products', value: '154', color: 'bg-[#e2f1ff] text-[#1d68c4]' },
-  { icon: PackageCheck, label: 'Active Products', value: '132', color: 'bg-[#dcf5ea] text-[#15945d]' },
-  { icon: AlertTriangle, label: 'Low Stock', value: '18', color: 'bg-[#fff3d8] text-[#cc8b18]' },
-  { icon: Archive, label: 'Draft Products', value: '12', color: 'bg-[#ebe5ff] text-[#6d4dd8]' },
-  { icon: TrendingUp, label: 'Best Sellers', value: '24', color: 'bg-blush text-rosewood' },
-];
-
 const productRows = dressProducts.map((product, index) => ({
   ...product,
   sku: `DRE-${String(index + 1).padStart(3, '0')}`,
@@ -57,10 +51,68 @@ const productRows = dressProducts.map((product, index) => ({
   stock: [48, 7, 22, 3, 35, 16, 64, 11][index],
   sales: [128, 95, 82, 71, 64, 58, 54, 49][index],
   status: index === 3 ? 'Draft' : index === 5 ? 'Inactive' : 'Active',
+  statusKey: index === 3 ? 'draft' : index === 5 ? 'inactive' : 'active',
   updated: ['May 31, 2026', 'May 30, 2026', 'May 29, 2026', 'May 28, 2026'][index % 4],
+  isBestSeller: product.badge === 'Bestseller',
 }));
 
 export default function ManageProductsPage() {
+  const [products, setProducts] = useState(productRows);
+  const [filters, setFilters] = useState({
+    search: '',
+    category: '',
+    stock: '',
+    status: 'all',
+  });
+  const [activeStatus, setActiveStatus] = useState('all');
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadProducts = async () => {
+      setIsLoading(true);
+      setApiError('');
+
+      try {
+        const data = await getProducts({
+          search: filters.search || undefined,
+          category: filters.category || undefined,
+          status: filters.status,
+        });
+
+        if (isMounted) {
+          setProducts(data.map(mapApiProduct));
+        }
+      } catch (error) {
+        if (isMounted) {
+          setProducts(productRows);
+          setApiError('Showing demo products until the backend catalog is available.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [filters]);
+
+  const visibleProducts = useMemo(() => {
+    const stockFilteredProducts = filters.stock === 'low' ? products.filter((product) => product.stock < 10) : products;
+
+    if (activeStatus === 'all') return stockFilteredProducts;
+    if (activeStatus === 'low-stock') return stockFilteredProducts.filter((product) => product.stock < 10);
+    return stockFilteredProducts.filter((product) => product.statusKey === activeStatus);
+  }, [activeStatus, filters.stock, products]);
+
+  const stats = useMemo(() => buildStats(products), [products]);
+
   return (
     <div className="min-h-screen bg-[#fbf7f4] text-ink">
       <div className="grid lg:grid-cols-[280px_1fr]">
@@ -85,9 +137,16 @@ export default function ManageProductsPage() {
               </div>
             </div>
 
-            <Stats />
-            <Filters />
-            <ProductsTable />
+            <Stats stats={stats} />
+            <Filters filters={filters} setFilters={setFilters} />
+            <ProductsTable
+              activeStatus={activeStatus}
+              apiError={apiError}
+              isLoading={isLoading}
+              products={visibleProducts}
+              setActiveStatus={setActiveStatus}
+              totalCount={products.length}
+            />
           </div>
         </main>
       </div>
@@ -154,7 +213,7 @@ function ProductsTopbar() {
   );
 }
 
-function Stats() {
+function Stats({ stats }) {
   return (
     <section className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
       {stats.map(({ icon: Icon, label, value, color }) => (
@@ -174,15 +233,61 @@ function Stats() {
   );
 }
 
-function Filters() {
+function Filters({ filters, setFilters }) {
+  const updateFilter = (key, value) => {
+    setFilters((current) => ({ ...current, [key]: value }));
+  };
+
+  const resetFilters = () => {
+    setFilters({ search: '', category: '', stock: '', status: 'all' });
+  };
+
   return (
     <section className="mt-6 rounded-lg border border-[#eadfd8] bg-white p-5 shadow-sm">
       <div className="grid gap-5 lg:grid-cols-[1.3fr_0.9fr_0.9fr_0.9fr_auto_auto] lg:items-end">
-        <Control label="Search Product" icon={Search} placeholder="Search by name or SKU..." />
-        <Select label="Category" text="All Categories" />
-        <Select label="Stock" text="All Stock" />
-        <Select label="Status" text="All Status" />
-        <button className="h-12 rounded border border-[#ded3c9] px-6 font-semibold">Reset</button>
+        <Control
+          label="Search Product"
+          icon={Search}
+          onChange={(event) => updateFilter('search', event.target.value)}
+          placeholder="Search by name or SKU..."
+          value={filters.search}
+        />
+        <Select
+          label="Category"
+          onChange={(event) => updateFilter('category', event.target.value)}
+          options={[
+            ['', 'All Categories'],
+            ['maxi-dresses', 'Maxi Dresses'],
+            ['midi-dresses', 'Midi Dresses'],
+            ['mini-dresses', 'Mini Dresses'],
+            ['evening-dresses', 'Evening Dresses'],
+            ['party-dresses', 'Party Dresses'],
+          ]}
+          value={filters.category}
+        />
+        <Select
+          label="Stock"
+          onChange={(event) => updateFilter('stock', event.target.value)}
+          options={[
+            ['', 'All Stock'],
+            ['low', 'Low Stock'],
+          ]}
+          value={filters.stock}
+        />
+        <Select
+          label="Status"
+          onChange={(event) => updateFilter('status', event.target.value)}
+          options={[
+            ['all', 'All Status'],
+            ['active', 'Active'],
+            ['draft', 'Draft'],
+            ['inactive', 'Inactive'],
+          ]}
+          value={filters.status}
+        />
+        <button className="h-12 rounded border border-[#ded3c9] px-6 font-semibold" onClick={resetFilters}>
+          Reset
+        </button>
         <button className="btn-primary h-12 gap-2 px-6">
           <Filter size={17} /> Filter
         </button>
@@ -191,30 +296,44 @@ function Filters() {
   );
 }
 
-function Control({ label, icon: Icon, placeholder }) {
+function Control({ label, icon: Icon, onChange, placeholder, value }) {
   return (
     <label>
       <span className="form-label">{label}</span>
       <span className="relative mt-2 block">
         <Icon className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500" size={18} />
-        <input className="form-control pr-11" placeholder={placeholder} />
+        <input className="form-control pr-11" onChange={onChange} placeholder={placeholder} value={value} />
       </span>
     </label>
   );
 }
 
-function Select({ label, text }) {
+function Select({ label, onChange, options, value }) {
   return (
     <label>
       <span className="form-label">{label}</span>
-      <button className="form-control mt-2 flex items-center justify-between text-left" type="button">
-        {text} <ChevronDown size={17} />
-      </button>
+      <span className="relative mt-2 block">
+        <select className="form-control appearance-none pr-11" onChange={onChange} value={value}>
+          {options.map(([optionValue, labelText]) => (
+            <option key={labelText} value={optionValue}>
+              {labelText}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2" size={17} />
+      </span>
     </label>
   );
 }
 
-function ProductsTable() {
+function ProductsTable({ activeStatus, apiError, isLoading, products, setActiveStatus, totalCount }) {
+  const tabs = [
+    ['all', 'All'],
+    ['active', 'Active'],
+    ['draft', 'Draft'],
+    ['low-stock', 'Low Stock'],
+  ];
+
   return (
     <section className="mt-6 overflow-hidden rounded-lg border border-[#eadfd8] bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-4 border-b border-[#eadfd8] pb-5 sm:flex-row sm:items-center sm:justify-between">
@@ -223,13 +342,23 @@ function ProductsTable() {
           <p className="mt-1 text-sm text-neutral-600">Manage catalog visibility, stock, and product details.</p>
         </div>
         <div className="flex rounded-lg bg-[#f6eee7] p-1 text-sm font-semibold">
-          {['All', 'Active', 'Draft', 'Low Stock'].map((tab, index) => (
-            <button className={`h-9 rounded px-4 ${index === 0 ? 'bg-white text-rosewood shadow-sm' : 'text-neutral-600'}`} key={tab}>
+          {tabs.map(([status, tab]) => (
+            <button
+              className={`h-9 rounded px-4 ${activeStatus === status ? 'bg-white text-rosewood shadow-sm' : 'text-neutral-600'}`}
+              key={status}
+              onClick={() => setActiveStatus(status)}
+            >
               {tab}
             </button>
           ))}
         </div>
       </div>
+
+      {(isLoading || apiError) && (
+        <div className={`mt-5 rounded-lg px-4 py-3 text-sm font-semibold ${apiError ? 'bg-[#fff3d8] text-[#9b6613]' : 'bg-blush text-rosewood'}`}>
+          {isLoading ? 'Loading products...' : apiError}
+        </div>
+      )}
 
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1120px] text-left text-sm">
@@ -250,7 +379,7 @@ function ProductsTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#eadfd8]">
-            {productRows.map((product) => (
+            {products.map((product) => (
               <ProductRow product={product} key={product.sku} />
             ))}
           </tbody>
@@ -258,7 +387,9 @@ function ProductsTable() {
       </div>
 
       <div className="flex flex-col gap-4 border-t border-[#eadfd8] pt-5 text-sm text-neutral-600 sm:flex-row sm:items-center sm:justify-between">
-        <p>Showing 1 to 8 of 154 products</p>
+        <p>
+          Showing {products.length ? 1 : 0} to {products.length} of {totalCount} products
+        </p>
         <div className="flex items-center gap-2">
           <PageButton>
             <ChevronLeft size={16} />
@@ -291,7 +422,11 @@ function ProductRow({ product }) {
       <td>
         <div className="grid grid-cols-[58px_1fr] items-center gap-4">
           <span className={`relative h-16 overflow-hidden rounded bg-gradient-to-br ${product.accent}`}>
-            <span className={`product-silhouette ${product.figure || ''} !h-[90%] !w-[42%]`} />
+            {product.image ? (
+              <img className="h-full w-full object-cover" src={product.image} alt="" />
+            ) : (
+              <span className={`product-silhouette ${product.figure || ''} !h-[90%] !w-[42%]`} />
+            )}
           </span>
           <div>
             <p className="font-bold">{product.name}</p>
@@ -340,6 +475,65 @@ function StatusPill({ status }) {
   };
 
   return <span className={`rounded px-3 py-1 text-xs font-bold ${styles[status]}`}>{status}</span>;
+}
+
+function buildStats(products) {
+  const activeProducts = products.filter((product) => product.statusKey === 'active').length;
+  const lowStockProducts = products.filter((product) => product.stock < 10).length;
+  const draftProducts = products.filter((product) => product.statusKey === 'draft').length;
+  const bestSellers = products.filter((product) => product.isBestSeller).length;
+
+  return [
+    { icon: Package, label: 'Total Products', value: String(products.length), color: 'bg-[#e2f1ff] text-[#1d68c4]' },
+    { icon: PackageCheck, label: 'Active Products', value: String(activeProducts), color: 'bg-[#dcf5ea] text-[#15945d]' },
+    { icon: AlertTriangle, label: 'Low Stock', value: String(lowStockProducts), color: 'bg-[#fff3d8] text-[#cc8b18]' },
+    { icon: Archive, label: 'Draft Products', value: String(draftProducts), color: 'bg-[#ebe5ff] text-[#6d4dd8]' },
+    { icon: TrendingUp, label: 'Best Sellers', value: String(bestSellers), color: 'bg-blush text-rosewood' },
+  ];
+}
+
+function mapApiProduct(product, index) {
+  const fallbackStyle = productRows[index % productRows.length];
+  const statusKey = product.status || 'draft';
+
+  return {
+    name: product.name,
+    sku: product.sku,
+    category: product.category?.name || product.subcategory || 'Uncategorized',
+    price: formatCurrency(product.price),
+    stock: product.stock ?? 0,
+    sales: 0,
+    status: formatStatus(statusKey),
+    statusKey,
+    updated: formatDate(product.updatedAt),
+    sizes: product.sizes?.length ? product.sizes : ['XS', 'S', 'M', 'L'],
+    accent: fallbackStyle.accent,
+    figure: fallbackStyle.figure,
+    image: product.images?.find((image) => image.isCover)?.url || product.images?.[0]?.url || '',
+    isBestSeller: Boolean(product.isBestSeller),
+  };
+}
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat('en-LK', {
+    currency: 'LKR',
+    maximumFractionDigits: 0,
+    style: 'currency',
+  }).format(value || 0);
+}
+
+function formatDate(value) {
+  if (!value) return 'Recently';
+
+  return new Intl.DateTimeFormat('en-US', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(value));
+}
+
+function formatStatus(value) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 function PageButton({ children, active = false }) {
