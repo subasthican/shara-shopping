@@ -19,6 +19,16 @@ Set `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` in `.env`, then run:
 npm run seed:admin
 ```
 
+## Seed Demo Store Data
+
+After `MONGODB_URI` is configured in `.env`, run:
+
+```bash
+npm run seed:demo
+```
+
+This creates or updates Shara demo categories, products, a customer, one order, and a contact message for local testing.
+
 ## Core Routes
 
 - `POST /api/auth/login`
