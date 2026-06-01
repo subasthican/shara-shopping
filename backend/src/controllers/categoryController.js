@@ -1,8 +1,23 @@
 import asyncHandler from 'express-async-handler';
 import Category from '../models/Category.js';
 
-export const getCategories = asyncHandler(async (_req, res) => {
-  const categories = await Category.find().sort({ sortOrder: 1, name: 1 });
+export const getCategories = asyncHandler(async (req, res) => {
+  const { search, status = 'all' } = req.query;
+  const query = {};
+
+  if (status !== 'all') {
+    query.isActive = status === 'active';
+  }
+
+  if (search) {
+    query.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { slug: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } },
+    ];
+  }
+
+  const categories = await Category.find(query).sort({ sortOrder: 1, name: 1 });
   res.json(categories);
 });
 
