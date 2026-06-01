@@ -25,7 +25,10 @@ export const getProducts = asyncHandler(async (req, res) => {
 });
 
 export const getProductById = asyncHandler(async (req, res) => {
-  const product = await Product.findById(req.params.id).populate('category', 'name slug');
+  const lookup = mongoose.isValidObjectId(req.params.id)
+    ? { _id: req.params.id }
+    : { slug: req.params.id };
+  const product = await Product.findOne(lookup).populate('category', 'name slug');
 
   if (!product) {
     res.status(404);
