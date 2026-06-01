@@ -1,6 +1,6 @@
 import { Eye, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import heroImage from '../assets/home-hero.png';
 import Footer from '../components/Footer.jsx';
 import Header from '../components/Header.jsx';
@@ -39,6 +39,8 @@ function AdminPortalPanel() {
 
 function LoginPanel() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = location.state?.from || '/admin/dashboard';
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [feedback, setFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,7 +62,7 @@ function LoginPanel() {
 
     try {
       await loginAdmin(credentials);
-      navigate('/admin/dashboard');
+      navigate(redirectTo, { replace: true });
     } catch (error) {
       setFeedback(error.response?.data?.message || 'Unable to login. Please check your credentials.');
     } finally {
