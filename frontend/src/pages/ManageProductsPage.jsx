@@ -37,7 +37,7 @@ const nav = [
   [PackageCheck, 'Inventory', '#inventory'],
   [Star, 'Reviews', '#reviews'],
   [Timer, 'Reports', '#reports'],
-  [Settings, 'Settings', '#settings'],
+  [Settings, 'Settings', '/admin/settings'],
   [UsersRound, 'Users', '#users'],
   [LogOut, 'Logout', '#logout'],
 ];

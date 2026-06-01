@@ -34,7 +34,7 @@ const nav = [
   [UsersRound, 'Customers', '/admin/customers'],
   [PackageCheck, 'Inventory', '#inventory'],
   [Star, 'Reviews', '#reviews'],
-  [Settings, 'Settings', '#settings'],
+  [Settings, 'Settings', '/admin/settings'],
   [UsersRound, 'Users', '#users'],
   [LogOut, 'Logout', '#logout'],
 ];

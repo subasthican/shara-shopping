@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
 import AdminLoginPage from './pages/AdminLoginPage.jsx';
+import AdminSettingsPage from './pages/AdminSettingsPage.jsx';
 import AddEditProductPage from './pages/AddEditProductPage.jsx';
 import ManageCategoriesPage from './pages/ManageCategoriesPage.jsx';
 import ManageCustomersPage from './pages/ManageCustomersPage.jsx';
@@ -31,6 +32,7 @@ export default function App() {
       <Route path="/wishlist" element={<WishlistCartPage />} />
       <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+      <Route path="/admin/settings" element={<AdminSettingsPage />} />
       <Route path="/admin/products" element={<ManageProductsPage />} />
       <Route path="/admin/categories" element={<ManageCategoriesPage />} />
       <Route path="/admin/customers" element={<ManageCustomersPage />} />
