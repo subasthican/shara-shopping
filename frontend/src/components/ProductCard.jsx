@@ -28,7 +28,11 @@ export default function ProductCard({ product, selectedSize, className = '', ima
           <button className="icon-button absolute right-3 top-3 z-20 bg-white/80" aria-label={`Add ${product.name} to wishlist`}>
             <Heart size={20} />
           </button>
-          <span className={`product-silhouette ${product.figure || ''}`} />
+          {product.image ? (
+            <img className="h-full w-full object-cover" src={product.image} alt="" />
+          ) : (
+            <span className={`product-silhouette ${product.figure || ''}`} />
+          )}
         </div>
         <div className="p-4">
           <h3 className="text-sm font-semibold">
