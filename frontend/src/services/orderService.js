@@ -11,3 +11,8 @@ export async function trackOrder(orderId, contact) {
   });
   return data;
 }
+
+export async function getOrders(params = {}) {
+  const { data } = await apiClient.get('/orders', { params });
+  return data;
+}
