@@ -45,8 +45,28 @@ export const createOrder = asyncHandler(async (req, res) => {
   res.status(201).json(order);
 });
 
-export const getOrders = asyncHandler(async (_req, res) => {
-  const orders = await Order.find().sort({ createdAt: -1 });
+export const getOrders = asyncHandler(async (req, res) => {
+  const { paymentStatus = 'all', search, status = 'all' } = req.query;
+  const query = {};
+
+  if (status !== 'all') {
+    query.orderStatus = status;
+  }
+
+  if (paymentStatus !== 'all') {
+    query.paymentStatus = paymentStatus;
+  }
+
+  if (search) {
+    query.$or = [
+      { orderNumber: { $regex: search, $options: 'i' } },
+      { 'customer.fullName': { $regex: search, $options: 'i' } },
+      { 'customer.email': { $regex: search, $options: 'i' } },
+      { 'customer.phone': { $regex: search, $options: 'i' } },
+    ];
+  }
+
+  const orders = await Order.find(query).sort({ createdAt: -1 });
   res.json(orders);
 });
 

@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   CalendarDays,
@@ -24,6 +25,7 @@ import {
   UsersRound,
   XCircle,
 } from 'lucide-react';
+import { getOrders } from '../services/orderService.js';
 
 const nav = [
   [Home, 'Dashboard', '/admin/dashboard'],
@@ -40,15 +42,6 @@ const nav = [
   [LogOut, 'Logout', '#logout'],
 ];
 
-const stats = [
-  { icon: ShoppingBag, label: 'Total Orders', value: '1,254', color: 'bg-[#fff0df] text-[#bd6c25]' },
-  { icon: ShoppingBag, label: 'Total Sales', value: 'LKR 245,680', color: 'bg-blush text-rosewood' },
-  { icon: Timer, label: 'Pending Orders', value: '43', color: 'bg-[#fff3d8] text-[#cc8b18]' },
-  { icon: RefreshCcw, label: 'Processing Orders', value: '249', color: 'bg-[#ebe5ff] text-[#6d4dd8]' },
-  { icon: PackageCheck, label: 'Delivered Orders', value: '842', color: 'bg-[#dcf5ea] text-[#15945d]' },
-  { icon: XCircle, label: 'Cancelled Orders', value: '60', color: 'bg-[#ffe0e8] text-[#d61f3a]' },
-];
-
 const rows = [
   ['#SH2505261', 'Heshani Perera', 'heshani@gmail.com', '077 123 4567', 'May 26, 2025', '10:30 AM', '3 Items', 'LKR 18,900', 'Paid', 'Card', 'Delivered', 'May 28, 2025'],
   ['#SH2505260', 'Nethmi Fernando', 'nethmi@gmail.com', '077 234 5678', 'May 26, 2025', '09:15 AM', '2 Items', 'LKR 7,450', 'Paid', 'Card', 'Processing', ''],
@@ -56,9 +49,72 @@ const rows = [
   ['#SH2505258', 'Sewmini Jayawardena', 'sewmini@gmail.com', '077 456 7890', 'May 25, 2025', '06:20 PM', '2 Items', 'LKR 5,950', 'Paid', 'Card', 'Cancelled', ''],
   ['#SH2505257', 'Tharushi Silva', 'tharushi@gmail.com', '077 567 8901', 'May 24, 2025', '04:10 PM', '4 Items', 'LKR 14,800', 'Pending', 'Bank Transfer', 'Pending', ''],
   ['#SH2505256', 'Maleesha Bandara', 'maleesha@gmail.com', '077 678 9012', 'May 24, 2025', '02:05 PM', '1 Item', 'LKR 4,200', 'Paid', 'Card', 'Delivered', 'May 25, 2025'],
-];
+].map(([id, customer, email, phone, date, time, itemCount, amount, payment, method, status, statusDate]) => ({
+  id,
+  customer,
+  email,
+  phone,
+  date,
+  time,
+  itemCount,
+  amount,
+  amountNumber: Number(amount.replace(/[^0-9]/g, '')),
+  payment,
+  paymentKey: payment.toLowerCase(),
+  method,
+  status,
+  statusKey: status.toLowerCase(),
+  statusDate,
+}));
 
 export default function ManageOrdersPage() {
+  const [orders, setOrders] = useState(rows);
+  const [filters, setFilters] = useState({
+    search: '',
+    status: 'all',
+    paymentStatus: 'all',
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadOrders = async () => {
+      setIsLoading(true);
+      setApiError('');
+
+      try {
+        const data = await getOrders({
+          search: filters.search || undefined,
+          status: filters.status,
+          paymentStatus: filters.paymentStatus,
+        });
+
+        if (isMounted) {
+          setOrders(data.map(mapApiOrder));
+        }
+      } catch (error) {
+        if (isMounted) {
+          setOrders(rows);
+          setApiError('Showing demo orders until admin API access is available.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadOrders();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [filters]);
+
+  const stats = useMemo(() => buildStats(orders), [orders]);
+
   return (
     <div className="min-h-screen bg-[#fbf7f4] text-ink">
       <div className="grid lg:grid-cols-[280px_1fr]">
@@ -68,9 +124,9 @@ export default function ManageOrdersPage() {
           <div className="px-4 py-7 sm:px-8">
             <h1 className="text-3xl font-extrabold">Manage Orders</h1>
             <p className="mt-3 text-sm text-neutral-600">Dashboard <span className="mx-2">›</span> Orders</p>
-            <Stats />
-            <Filters />
-            <OrdersTable />
+            <Stats stats={stats} />
+            <Filters filters={filters} setFilters={setFilters} />
+            <OrdersTable apiError={apiError} isLoading={isLoading} orders={orders} />
           </div>
         </main>
       </div>
@@ -137,7 +193,7 @@ function OrdersTopbar() {
   );
 }
 
-function Stats() {
+function Stats({ stats }) {
   return (
     <section className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
       {stats.map(({ icon: Icon, label, value, color }) => (
@@ -155,47 +211,98 @@ function Stats() {
   );
 }
 
-function Filters() {
+function Filters({ filters, setFilters }) {
+  const updateFilter = (key, value) => {
+    setFilters((current) => ({ ...current, [key]: value }));
+  };
+
+  const resetFilters = () => {
+    setFilters({ search: '', status: 'all', paymentStatus: 'all' });
+  };
+
   return (
     <section className="mt-6 rounded-lg border border-[#eadfd8] bg-white p-5 shadow-sm">
       <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr_0.86fr_0.9fr_auto_auto] lg:items-end">
-        <Control label="Search Order" icon={Search} placeholder="Search by Order ID or Customer..." />
+        <Control
+          label="Search Order"
+          icon={Search}
+          onChange={(event) => updateFilter('search', event.target.value)}
+          placeholder="Search by Order ID or Customer..."
+          value={filters.search}
+        />
         <Control label="Date Range" icon={CalendarDays} placeholder="Select date range" />
-        <Select label="Order Status" text="All Status" />
-        <Select label="Payment Status" text="All Payment Status" />
-        <button className="h-12 rounded border border-[#ded3c9] px-6 font-semibold">Reset</button>
+        <Select
+          label="Order Status"
+          onChange={(event) => updateFilter('status', event.target.value)}
+          options={[
+            ['all', 'All Status'],
+            ['pending', 'Pending'],
+            ['confirmed', 'Confirmed'],
+            ['processing', 'Processing'],
+            ['shipped', 'Shipped'],
+            ['delivered', 'Delivered'],
+            ['cancelled', 'Cancelled'],
+          ]}
+          value={filters.status}
+        />
+        <Select
+          label="Payment Status"
+          onChange={(event) => updateFilter('paymentStatus', event.target.value)}
+          options={[
+            ['all', 'All Payment Status'],
+            ['pending', 'Pending'],
+            ['paid', 'Paid'],
+            ['cancelled', 'Cancelled'],
+          ]}
+          value={filters.paymentStatus}
+        />
+        <button className="h-12 rounded border border-[#ded3c9] px-6 font-semibold" onClick={resetFilters}>Reset</button>
         <button className="btn-primary h-12 gap-2 px-6"><Filter size={17} /> Filter</button>
       </div>
     </section>
   );
 }
 
-function Control({ label, icon: Icon, placeholder }) {
+function Control({ label, icon: Icon, onChange, placeholder, value = '' }) {
+  const inputProps = onChange ? { onChange, value } : {};
+
   return (
     <label>
       <span className="form-label">{label}</span>
       <span className="relative mt-2 block">
         <Icon className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500" size={18} />
-        <input className="form-control pr-11" placeholder={placeholder} />
+        <input className="form-control pr-11" placeholder={placeholder} {...inputProps} />
       </span>
     </label>
   );
 }
 
-function Select({ label, text }) {
+function Select({ label, onChange, options, value }) {
   return (
     <label>
       <span className="form-label">{label}</span>
-      <button className="form-control mt-2 flex items-center justify-between text-left" type="button">
-        {text} <ChevronDown size={17} />
-      </button>
+      <span className="relative mt-2 block">
+        <select className="form-control appearance-none pr-11" onChange={onChange} value={value}>
+          {options.map(([optionValue, labelText]) => (
+            <option key={labelText} value={optionValue}>
+              {labelText}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2" size={17} />
+      </span>
     </label>
   );
 }
 
-function OrdersTable() {
+function OrdersTable({ apiError, isLoading, orders }) {
   return (
     <section className="mt-6 overflow-hidden rounded-lg border border-[#eadfd8] bg-white p-5 shadow-sm">
+      {(isLoading || apiError) && (
+        <div className={`mb-5 rounded-lg px-4 py-3 text-sm font-semibold ${apiError ? 'bg-[#fff3d8] text-[#9b6613]' : 'bg-blush text-rosewood'}`}>
+          {isLoading ? 'Loading orders...' : apiError}
+        </div>
+      )}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1080px] text-left text-sm">
           <thead>
@@ -212,14 +319,16 @@ function OrdersTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#eadfd8]">
-            {rows.map((row) => (
-              <OrderRow row={row} key={row[0]} />
+            {orders.map((row) => (
+              <OrderRow row={row} key={row.id} />
             ))}
           </tbody>
         </table>
       </div>
       <div className="flex flex-col gap-4 border-t border-[#eadfd8] pt-5 text-sm text-neutral-600 sm:flex-row sm:items-center sm:justify-between">
-        <p>Showing 1 to 10 of 1,254 orders</p>
+        <p>
+          Showing {orders.length ? 1 : 0} to {orders.length} of {orders.length} orders
+        </p>
         <div className="flex items-center gap-2">
           <PageButton><ChevronLeft size={16} /></PageButton>
           {[1, 2, 3].map((page) => <PageButton active={page === 1} key={page}>{page}</PageButton>)}
@@ -234,32 +343,31 @@ function OrdersTable() {
 }
 
 function OrderRow({ row }) {
-  const [id, customer, email, phone, date, time, itemCount, amount, payment, method, status, statusDate] = row;
   return (
     <tr>
       <td className="py-4"><span className="block h-4 w-4 rounded border border-[#d8cec4]" /></td>
-      <td className="font-bold">{id}</td>
+      <td className="font-bold">{row.id}</td>
       <td>
         <div className="flex items-center gap-3">
           <span className="relative h-11 w-11 overflow-hidden rounded-full bg-gradient-to-br from-[#f1cbc8] to-[#d39b99]">
             <span className="product-silhouette figure-blush !h-[90%] !w-[38%]" />
           </span>
           <div>
-            <p className="font-semibold">{customer}</p>
-            <p className="text-neutral-600">{email}</p>
-            <p className="text-neutral-600">{phone}</p>
+            <p className="font-semibold">{row.customer}</p>
+            <p className="text-neutral-600">{row.email || 'No email'}</p>
+            <p className="text-neutral-600">{row.phone}</p>
           </div>
         </div>
       </td>
-      <td><p>{date}</p><p className="text-neutral-600">{time}</p></td>
-      <td><p>{itemCount}</p><a className="font-semibold text-rosewood" href="#items">View Items</a></td>
-      <td className="font-semibold">{amount}</td>
-      <td><StatusPill status={payment} payment /><p className="mt-1 text-neutral-600">{method}</p></td>
-      <td><StatusPill status={status} /><p className="mt-1 text-neutral-600">{statusDate}</p></td>
+      <td><p>{row.date}</p><p className="text-neutral-600">{row.time}</p></td>
+      <td><p>{row.itemCount}</p><a className="font-semibold text-rosewood" href="#items">View Items</a></td>
+      <td className="font-semibold">{row.amount}</td>
+      <td><StatusPill status={row.payment} payment /><p className="mt-1 text-neutral-600">{row.method}</p></td>
+      <td><StatusPill status={row.status} /><p className="mt-1 text-neutral-600">{row.statusDate}</p></td>
       <td>
         <div className="flex justify-end gap-2">
-          <a className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" href={`/admin/orders/${id.replace('#', '')}`} aria-label={`View ${id}`}><Eye size={16} /></a>
-          <button className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" aria-label={`More actions for ${id}`}><MoreVertical size={16} /></button>
+          <a className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" href={`/admin/orders/${row.id.replace('#', '')}`} aria-label={`View ${row.id}`}><Eye size={16} /></a>
+          <button className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" aria-label={`More actions for ${row.id}`}><MoreVertical size={16} /></button>
         </div>
       </td>
     </tr>
@@ -268,6 +376,7 @@ function OrderRow({ row }) {
 
 function StatusPill({ status, payment = false }) {
   const styles = {
+    Confirmed: 'bg-[#e2f1ff] text-[#1d68c4]',
     Delivered: 'bg-[#d8f8df] text-[#12833c]',
     Processing: 'bg-[#fff0d8] text-[#c76b11]',
     Shipped: 'bg-[#e2e8ff] text-[#5841c6]',
@@ -276,6 +385,79 @@ function StatusPill({ status, payment = false }) {
     Paid: 'bg-[#d8f8df] text-[#12833c]',
   };
   return <span className={`rounded px-3 py-1 text-xs font-bold ${styles[status] || (payment ? styles.Paid : '')}`}>{status}</span>;
+}
+
+function buildStats(orders) {
+  const totalSales = orders.reduce((total, order) => total + order.amountNumber, 0);
+  const pendingOrders = orders.filter((order) => order.statusKey === 'pending').length;
+  const processingOrders = orders.filter((order) => ['confirmed', 'processing', 'shipped'].includes(order.statusKey)).length;
+  const deliveredOrders = orders.filter((order) => order.statusKey === 'delivered').length;
+  const cancelledOrders = orders.filter((order) => order.statusKey === 'cancelled').length;
+
+  return [
+    { icon: ShoppingBag, label: 'Total Orders', value: String(orders.length), color: 'bg-[#fff0df] text-[#bd6c25]' },
+    { icon: ShoppingBag, label: 'Total Sales', value: formatCurrency(totalSales), color: 'bg-blush text-rosewood' },
+    { icon: Timer, label: 'Pending Orders', value: String(pendingOrders), color: 'bg-[#fff3d8] text-[#cc8b18]' },
+    { icon: RefreshCcw, label: 'Processing Orders', value: String(processingOrders), color: 'bg-[#ebe5ff] text-[#6d4dd8]' },
+    { icon: PackageCheck, label: 'Delivered Orders', value: String(deliveredOrders), color: 'bg-[#dcf5ea] text-[#15945d]' },
+    { icon: XCircle, label: 'Cancelled Orders', value: String(cancelledOrders), color: 'bg-[#ffe0e8] text-[#d61f3a]' },
+  ];
+}
+
+function mapApiOrder(order) {
+  const createdAt = order.createdAt ? new Date(order.createdAt) : null;
+  const itemCount = order.items?.reduce((total, item) => total + Number(item.quantity || 1), 0) || 0;
+  const status = formatStatus(order.orderStatus || 'pending');
+  const payment = formatStatus(order.paymentStatus || 'pending');
+  const latestTimeline = order.timeline?.at(-1);
+
+  return {
+    id: `#${order.orderNumber}`,
+    customer: order.customer?.fullName || 'Customer',
+    email: order.customer?.email || '',
+    phone: order.customer?.phone || '',
+    date: createdAt ? formatDate(createdAt) : 'Recently',
+    time: createdAt ? formatTime(createdAt) : '',
+    itemCount: `${itemCount} ${itemCount === 1 ? 'Item' : 'Items'}`,
+    amount: formatCurrency(order.totalAmount),
+    amountNumber: order.totalAmount || 0,
+    payment,
+    paymentKey: order.paymentStatus || 'pending',
+    method: formatStatus(order.contactMethod || 'whatsapp'),
+    status,
+    statusKey: order.orderStatus || 'pending',
+    statusDate: latestTimeline?.date ? formatDate(new Date(latestTimeline.date)) : '',
+  };
+}
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat('en-LK', {
+    currency: 'LKR',
+    maximumFractionDigits: 0,
+    style: 'currency',
+  }).format(value || 0);
+}
+
+function formatDate(value) {
+  return new Intl.DateTimeFormat('en-US', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(value);
+}
+
+function formatTime(value) {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(value);
+}
+
+function formatStatus(value) {
+  return value
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
 }
 
 function PageButton({ children, active = false }) {
