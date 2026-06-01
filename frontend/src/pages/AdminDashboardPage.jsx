@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react';
 import {
   BarChart3,
   Bell,
@@ -22,6 +23,7 @@ import {
   UserRound,
   UsersRound,
 } from 'lucide-react';
+import { getDashboardStats } from '../services/dashboardService.js';
 
 const sidebar = [
   [LayoutDashboard, 'Dashboard'],
@@ -40,7 +42,7 @@ const sidebar = [
   [Settings, 'Website Settings'],
 ];
 
-const stats = [
+const demoStats = [
   { icon: ShoppingBag, label: 'Total Sales', value: 'LKR 1,245,600', note: '↑ 24.5% vs last week', color: 'text-rosewood bg-blush' },
   { icon: ShoppingBag, label: 'Total Orders', value: '328', note: '↑ 18.3% vs last week', color: 'text-[#f26a21] bg-[#ffe4d6]' },
   { icon: UsersRound, label: 'Total Customers', value: '2,856', note: '↑ 22.7% vs last week', color: 'text-[#7c3aed] bg-[#eee2ff]' },
@@ -73,13 +75,51 @@ const activities = [
 ];
 
 export default function AdminDashboardPage() {
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadDashboardStats = async () => {
+      setIsLoading(true);
+      setApiError('');
+
+      try {
+        const data = await getDashboardStats();
+
+        if (isMounted) {
+          setDashboardStats(data);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setDashboardStats(null);
+          setApiError('Showing demo dashboard stats until admin API access is available.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadDashboardStats();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const stats = useMemo(() => buildStats(dashboardStats), [dashboardStats]);
+
   return (
     <div className="min-h-screen bg-[#fbf7f4] text-ink">
       <div className="grid lg:grid-cols-[320px_1fr]">
         <Sidebar />
         <main className="min-w-0 px-4 py-6 sm:px-7">
           <TopBar />
-          <StatsGrid />
+          <StatsGrid apiError={apiError} isLoading={isLoading} stats={stats} />
           <div className="mt-6 grid gap-6 xl:grid-cols-[1.5fr_1fr]">
             <SalesOverview />
             <CategoryChart />
@@ -167,24 +207,31 @@ function BadgeIcon({ icon: Icon, count }) {
   );
 }
 
-function StatsGrid() {
+function StatsGrid({ apiError, isLoading, stats }) {
   return (
-    <section className="mt-7 grid gap-5 md:grid-cols-2 2xl:grid-cols-5">
-      {stats.map(({ icon: Icon, label, value, note, color }) => (
-        <article className="rounded-lg border border-[#eadfd8] bg-white p-6 shadow-sm" key={label}>
-          <div className="flex items-center gap-5">
-            <span className={`grid h-16 w-16 place-items-center rounded-full ${color}`}>
-              <Icon size={31} />
-            </span>
-            <div>
-              <p className="text-sm font-semibold">{label}</p>
-              <p className="mt-2 text-3xl font-extrabold">{value}</p>
-              <p className={`mt-2 text-sm font-semibold ${note.includes('Need') ? 'text-red-600' : 'text-[#17a34a]'}`}>{note}</p>
+    <>
+      {(isLoading || apiError) && (
+        <div className={`mt-6 rounded-lg px-4 py-3 text-sm font-semibold ${apiError ? 'bg-[#fff3d8] text-[#9b6613]' : 'bg-blush text-rosewood'}`}>
+          {isLoading ? 'Loading dashboard stats...' : apiError}
+        </div>
+      )}
+      <section className="mt-7 grid gap-5 md:grid-cols-2 2xl:grid-cols-5">
+        {stats.map(({ icon: Icon, label, value, note, color }) => (
+          <article className="rounded-lg border border-[#eadfd8] bg-white p-6 shadow-sm" key={label}>
+            <div className="flex items-center gap-5">
+              <span className={`grid h-16 w-16 place-items-center rounded-full ${color}`}>
+                <Icon size={31} />
+              </span>
+              <div>
+                <p className="text-sm font-semibold">{label}</p>
+                <p className="mt-2 text-3xl font-extrabold">{value}</p>
+                <p className={`mt-2 text-sm font-semibold ${note.includes('Need') ? 'text-red-600' : 'text-[#17a34a]'}`}>{note}</p>
+              </div>
             </div>
-          </div>
-        </article>
-      ))}
-    </section>
+          </article>
+        ))}
+      </section>
+    </>
   );
 }
 
@@ -332,6 +379,30 @@ function StatusPill({ status }) {
     Cancelled: 'bg-[#ffe0e8] text-[#c83248]',
   };
   return <span className={`rounded px-3 py-1 text-xs font-bold ${styles[status]}`}>{status}</span>;
+}
+
+function buildStats(data) {
+  if (!data) return demoStats;
+
+  return [
+    { icon: ShoppingBag, label: 'Total Sales', value: formatCurrency(data.totalSales), note: 'Live from orders', color: 'text-rosewood bg-blush' },
+    { icon: ShoppingBag, label: 'Total Orders', value: formatNumber(data.orders), note: 'All order records', color: 'text-[#f26a21] bg-[#ffe4d6]' },
+    { icon: UsersRound, label: 'Total Customers', value: formatNumber(data.customers), note: 'Customer profiles', color: 'text-[#7c3aed] bg-[#eee2ff]' },
+    { icon: ClipboardList, label: 'Pending Orders', value: formatNumber(data.pendingOrders), note: data.pendingOrders ? 'Need attention' : 'All clear', color: 'text-[#f26a21] bg-[#ffe4d6]' },
+    { icon: PackageSearch, label: 'Total Products', value: formatNumber(data.products), note: `${formatNumber(data.categories)} categories`, color: 'text-[#1d8ff2] bg-[#e2f1ff]' },
+  ];
+}
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat('en-LK', {
+    currency: 'LKR',
+    maximumFractionDigits: 0,
+    style: 'currency',
+  }).format(value || 0);
+}
+
+function formatNumber(value) {
+  return new Intl.NumberFormat('en-US').format(value || 0);
 }
 
 function CrownIcon() {
