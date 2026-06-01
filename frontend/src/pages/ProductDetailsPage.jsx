@@ -11,13 +11,14 @@ import {
   Truck,
   UserRoundCheck,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import BuyNowModal from '../components/BuyNowModal.jsx';
 import Footer from '../components/Footer.jsx';
 import Header from '../components/Header.jsx';
 import ProductCard from '../components/ProductCard.jsx';
 import { dressProducts } from '../data/shopData.js';
+import { getProductById, getProducts } from '../services/productService.js';
 
 const productCopy = {
   description:
@@ -39,14 +40,56 @@ function slugify(value) {
 
 export default function ProductDetailsPage() {
   const { productId } = useParams();
-  const product = useMemo(
+  const fallbackProduct = useMemo(
     () => dressProducts.find((item) => slugify(item.name) === productId) || dressProducts[0],
     [productId],
   );
+  const [product, setProduct] = useState(fallbackProduct);
+  const [recommendations, setRecommendations] = useState(() => dressProducts.filter((item) => item.name !== fallbackProduct.name).slice(0, 4));
   const [selectedSize, setSelectedSize] = useState('S');
   const [selectedTab, setSelectedTab] = useState('Description');
   const [isOrderOpen, setIsOrderOpen] = useState(false);
-  const recommendations = dressProducts.filter((item) => item.name !== product.name).slice(0, 4);
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProduct = async () => {
+      setIsLoading(true);
+      setApiError('');
+
+      try {
+        const [productData, productsData] = await Promise.all([
+          getProductById(productId),
+          getProducts({ status: 'active' }),
+        ]);
+
+        if (isMounted) {
+          const mappedProduct = mapApiProduct(productData, 0);
+          setProduct(mappedProduct);
+          setSelectedSize(mappedProduct.sizes[0] || 'S');
+          setRecommendations(productsData.filter((item) => item.slug !== productData.slug).slice(0, 4).map(mapApiProduct));
+        }
+      } catch (error) {
+        if (isMounted) {
+          setProduct(fallbackProduct);
+          setRecommendations(dressProducts.filter((item) => item.name !== fallbackProduct.name).slice(0, 4));
+          setApiError('Showing demo product details while the catalog loads.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadProduct();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fallbackProduct, productId]);
 
   return (
     <div className="min-h-screen bg-white text-ink">
@@ -55,6 +98,11 @@ export default function ProductDetailsPage() {
         <section className="px-4 py-6">
           <div className="mx-auto max-w-7xl">
             <Breadcrumb productName={product.name} />
+            {(isLoading || apiError) && (
+              <div className={`mt-6 rounded px-4 py-3 text-sm font-semibold ${apiError ? 'bg-[#fff3d8] text-[#9b6613]' : 'bg-blush text-rosewood'}`}>
+                {isLoading ? 'Loading product details...' : apiError}
+              </div>
+            )}
             <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.12fr)_minmax(390px,0.88fr)]">
               <ProductGallery product={product} />
               <ProductInfo
@@ -69,7 +117,7 @@ export default function ProductDetailsPage() {
 
         <section className="px-4 pb-10">
           <div className="mx-auto grid max-w-7xl gap-7 lg:grid-cols-[minmax(0,1fr)_330px]">
-            <ProductTabs selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
+            <ProductTabs product={product} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
             <CarePanel />
           </div>
         </section>
@@ -124,20 +172,24 @@ function Breadcrumb({ productName }) {
 }
 
 function ProductGallery({ product }) {
-  const galleryViews = ['Front view', 'Back view', 'Bodice detail', 'Full silhouette'];
+  const galleryViews = product.images?.length ? product.images : ['Front view', 'Back view', 'Bodice detail', 'Full silhouette'];
 
   return (
     <div className="grid gap-4 md:grid-cols-[118px_1fr]">
       <div className="order-2 grid grid-cols-4 gap-3 md:order-1 md:grid-cols-1">
-        {galleryViews.map((label, index) => (
+        {galleryViews.map((image, index) => (
           <button
             className={`relative flex aspect-[4/5.55] items-end justify-center overflow-hidden rounded border bg-gradient-to-br ${product.accent} ${
               index === 0 ? 'border-rosewood' : 'border-[#e1d6cd]'
             }`}
-            key={label}
-            aria-label={label}
+            key={typeof image === 'string' ? image : image.url}
+            aria-label={typeof image === 'string' ? image : `${product.name} view ${index + 1}`}
           >
-            <span className={`product-silhouette ${product.figure || ''} !bottom-[-5px] !h-[84%] !w-[36%]`} />
+            {typeof image === 'string' ? (
+              <span className={`product-silhouette ${product.figure || ''} !bottom-[-5px] !h-[84%] !w-[36%]`} />
+            ) : (
+              <img className="h-full w-full object-cover" src={image.url} alt="" />
+            )}
           </button>
         ))}
         <button className="hidden h-8 place-items-center rounded text-ink md:grid" aria-label="More product images">
@@ -149,7 +201,11 @@ function ProductGallery({ product }) {
         <button className="absolute left-5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white/75 text-ink shadow-sm" aria-label="Previous image">
           <ChevronRight size={18} className="rotate-180" />
         </button>
-        <span className={`product-silhouette ${product.figure || ''} !bottom-[-18px] !h-[86%] !w-[30%]`} />
+        {product.image ? (
+          <img className="h-full w-full object-cover" src={product.image} alt="" />
+        ) : (
+          <span className={`product-silhouette ${product.figure || ''} !bottom-[-18px] !h-[86%] !w-[30%]`} />
+        )}
         <button className="absolute right-5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white/75 text-ink shadow-sm" aria-label="Next image">
           <ChevronRight size={18} />
         </button>
@@ -173,7 +229,7 @@ function ProductInfo({ product, selectedSize, setSelectedSize, onBuyNow }) {
         <span className="font-semibold">68 Reviews</span>
       </div>
       <p className="mt-5 text-2xl font-extrabold">{product.price}</p>
-      <p className="mt-4 max-w-xl text-sm leading-6 text-neutral-700">{productCopy.description}</p>
+      <p className="mt-4 max-w-xl text-sm leading-6 text-neutral-700">{product.description || productCopy.description}</p>
       <div className="my-7 border-t border-[#eadfd8]" />
 
       <div>
@@ -231,7 +287,7 @@ function InfoRow({ icon: Icon, title, copy }) {
   );
 }
 
-function ProductTabs({ selectedTab, setSelectedTab }) {
+function ProductTabs({ product, selectedTab, setSelectedTab }) {
   return (
     <section className="grid rounded border border-[#ded3c9] bg-white md:grid-cols-[170px_1fr]">
       <div className="grid grid-cols-3 border-b border-[#ded3c9] md:grid-cols-1 md:border-b-0 md:border-r">
@@ -250,9 +306,9 @@ function ProductTabs({ selectedTab, setSelectedTab }) {
       <div className="p-6">
         {selectedTab === 'Description' && (
           <div className="max-w-2xl text-sm leading-6 text-neutral-700">
-            <p>{productCopy.description}</p>
+            <p>{product.description || productCopy.description}</p>
             <ul className="mt-4 list-disc space-y-1 pl-5">
-              {productCopy.details.map((item) => (
+              {(product.details || productCopy.details).map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
@@ -314,4 +370,37 @@ function OrderSteps() {
       </div>
     </section>
   );
+}
+
+function mapApiProduct(product, index) {
+  const fallbackStyle = dressProducts[index % dressProducts.length];
+  const badge = product.isBestSeller ? 'Bestseller' : product.isNewArrival ? 'New' : '';
+  const coverImage = product.images?.find((image) => image.isCover)?.url || product.images?.[0]?.url || '';
+
+  return {
+    name: product.name,
+    price: formatCurrency(product.price),
+    badge,
+    sizes: product.sizes?.length ? product.sizes : fallbackStyle.sizes,
+    accent: fallbackStyle.accent,
+    figure: fallbackStyle.figure,
+    image: coverImage,
+    images: product.images?.filter((image) => image.url) || [],
+    description: product.description,
+    details: [
+      product.shortDescription || 'Luxury occasion dress from the Shara collection.',
+      product.category?.name ? `Category: ${product.category.name}` : '',
+      product.subcategory ? `Collection: ${product.subcategory}` : '',
+      product.colours?.length ? `Available colours: ${product.colours.map((colour) => colour.name).join(', ')}` : '',
+      typeof product.stock === 'number' ? `${product.stock} pieces available` : '',
+    ].filter(Boolean),
+  };
+}
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat('en-LK', {
+    currency: 'LKR',
+    maximumFractionDigits: 0,
+    style: 'currency',
+  }).format(value || 0);
 }
