@@ -22,6 +22,13 @@ cd backend
 npm run seed:admin
 ```
 
+Seed demo catalog and order data after configuring backend `.env`:
+
+```bash
+cd backend
+npm run seed:demo
+```
+
 ## Run backend
 
 ```bash
