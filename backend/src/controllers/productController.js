@@ -1,4 +1,6 @@
 import asyncHandler from 'express-async-handler';
+import mongoose from 'mongoose';
+import Category from '../models/Category.js';
 import Product from '../models/Product.js';
 
 export const getProducts = asyncHandler(async (req, res) => {
@@ -6,7 +8,16 @@ export const getProducts = asyncHandler(async (req, res) => {
   const query = {};
 
   if (status !== 'all') query.status = status;
-  if (category) query.category = category;
+  if (category) {
+    const categoryDocument = await Category.findOne({ slug: category }).select('_id');
+    if (categoryDocument) {
+      query.category = categoryDocument._id;
+    } else if (mongoose.isValidObjectId(category)) {
+      query.category = category;
+    } else {
+      return res.json([]);
+    }
+  }
   if (search) query.$text = { $search: search };
 
   const products = await Product.find(query).populate('category', 'name slug').sort({ createdAt: -1 });
