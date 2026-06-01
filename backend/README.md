@@ -11,6 +11,14 @@ cp .env.example .env
 npm run dev
 ```
 
+## Seed First Admin
+
+Set `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` in `.env`, then run:
+
+```bash
+npm run seed:admin
+```
+
 ## Core Routes
 
 - `POST /api/auth/login`
