@@ -1,4 +1,5 @@
 import asyncHandler from 'express-async-handler';
+import mongoose from 'mongoose';
 import Customer from '../models/Customer.js';
 import Order from '../models/Order.js';
 import { sendOrderNotification } from '../utils/sendOrderNotification.js';
@@ -71,7 +72,10 @@ export const getOrders = asyncHandler(async (req, res) => {
 });
 
 export const getOrderById = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id).populate('customerRef');
+  const lookup = mongoose.isValidObjectId(req.params.id)
+    ? { _id: req.params.id }
+    : { orderNumber: req.params.id.replace(/^#/, '') };
+  const order = await Order.findOne(lookup).populate('customerRef');
 
   if (!order) {
     res.status(404);
