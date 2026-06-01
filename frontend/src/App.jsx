@@ -8,6 +8,7 @@ import ManageCustomersPage from './pages/ManageCustomersPage.jsx';
 import ManageOrdersPage from './pages/ManageOrdersPage.jsx';
 import ManageProductsPage from './pages/ManageProductsPage.jsx';
 import ViewOrderDetailsPage from './pages/ViewOrderDetailsPage.jsx';
+import ProtectedAdminRoute from './components/ProtectedAdminRoute.jsx';
 import AboutPage from './pages/AboutPage.jsx';
 import CategoryPage from './pages/CategoryPage.jsx';
 import ContactPage from './pages/ContactPage.jsx';
@@ -31,14 +32,18 @@ export default function App() {
       <Route path="/track-order" element={<TrackOrderPage />} />
       <Route path="/wishlist" element={<WishlistCartPage />} />
       <Route path="/admin/login" element={<AdminLoginPage />} />
-      <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-      <Route path="/admin/settings" element={<AdminSettingsPage />} />
-      <Route path="/admin/products" element={<ManageProductsPage />} />
-      <Route path="/admin/categories" element={<ManageCategoriesPage />} />
-      <Route path="/admin/customers" element={<ManageCustomersPage />} />
-      <Route path="/admin/orders" element={<ManageOrdersPage />} />
-      <Route path="/admin/orders/:orderId" element={<ViewOrderDetailsPage />} />
-      <Route path="/admin/products/new" element={<AddEditProductPage />} />
+      <Route path="/admin/dashboard" element={<AdminPage><AdminDashboardPage /></AdminPage>} />
+      <Route path="/admin/settings" element={<AdminPage><AdminSettingsPage /></AdminPage>} />
+      <Route path="/admin/products" element={<AdminPage><ManageProductsPage /></AdminPage>} />
+      <Route path="/admin/categories" element={<AdminPage><ManageCategoriesPage /></AdminPage>} />
+      <Route path="/admin/customers" element={<AdminPage><ManageCustomersPage /></AdminPage>} />
+      <Route path="/admin/orders" element={<AdminPage><ManageOrdersPage /></AdminPage>} />
+      <Route path="/admin/orders/:orderId" element={<AdminPage><ViewOrderDetailsPage /></AdminPage>} />
+      <Route path="/admin/products/new" element={<AdminPage><AddEditProductPage /></AdminPage>} />
     </Routes>
   );
+}
+
+function AdminPage({ children }) {
+  return <ProtectedAdminRoute>{children}</ProtectedAdminRoute>;
 }
