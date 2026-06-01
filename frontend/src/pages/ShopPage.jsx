@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react';
 import {
   ChevronDown,
   ChevronLeft,
@@ -13,8 +14,47 @@ import Header from '../components/Header.jsx';
 import ProductCard from '../components/ProductCard.jsx';
 import { quickCategories } from '../data/homeData.js';
 import { dressFilters, dressProducts } from '../data/shopData.js';
+import { getProducts } from '../services/productService.js';
 
 export default function ShopPage() {
+  const [products, setProducts] = useState(dressProducts);
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProducts = async () => {
+      setIsLoading(true);
+      setApiError('');
+
+      try {
+        const data = await getProducts({ status: 'active' });
+
+        if (isMounted) {
+          setProducts(data.length ? data.map(mapApiProduct) : dressProducts);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setProducts(dressProducts);
+          setApiError('Showing our curated demo collection while the catalog loads.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const productCount = useMemo(() => products.length, [products]);
+
   return (
     <div className="min-h-screen bg-white text-ink">
       <Header />
@@ -27,8 +67,8 @@ export default function ShopPage() {
             <div className="mt-6 grid gap-8 lg:grid-cols-[260px_1fr]">
               <FilterSidebar />
               <div>
-                <ShopToolbar />
-                <ProductGrid />
+                <ShopToolbar apiError={apiError} isLoading={isLoading} productCount={productCount} />
+                <ProductGrid products={products} />
                 <Pagination />
               </div>
             </div>
@@ -192,40 +232,72 @@ function CheckList({ items }) {
   );
 }
 
-function ShopToolbar() {
+function ShopToolbar({ apiError, isLoading, productCount }) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-neutral-700">Showing 1-8 of 128 Dresses</p>
-      <div className="flex flex-wrap items-center gap-3">
-        <button className="inline-flex h-11 items-center gap-2 rounded border border-[#ded3c9] px-4 text-sm lg:hidden">
-          <SlidersHorizontal size={17} /> Filters
-        </button>
-        <button className="inline-flex h-11 min-w-52 items-center justify-between gap-4 rounded border border-[#ded3c9] px-4 text-sm">
-          <span className="text-neutral-500">Sort by:</span>
-          Newest First
-          <ChevronDown size={16} />
-        </button>
-        <div className="flex overflow-hidden rounded border border-[#ded3c9]">
-          <button className="grid h-11 w-11 place-items-center border-r border-[#ded3c9] bg-pearl" aria-label="Grid view">
-            <Grid3X3 size={18} />
+    <div>
+      {(isLoading || apiError) && (
+        <div className={`mb-4 rounded px-4 py-3 text-sm font-semibold ${apiError ? 'bg-[#fff3d8] text-[#9b6613]' : 'bg-blush text-rosewood'}`}>
+          {isLoading ? 'Loading dresses...' : apiError}
+        </div>
+      )}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-neutral-700">
+          Showing {productCount ? 1 : 0}-{productCount} of {productCount} Dresses
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <button className="inline-flex h-11 items-center gap-2 rounded border border-[#ded3c9] px-4 text-sm lg:hidden">
+            <SlidersHorizontal size={17} /> Filters
           </button>
-          <button className="grid h-11 w-11 place-items-center" aria-label="List view">
-            <ListFilter size={18} />
+          <button className="inline-flex h-11 min-w-52 items-center justify-between gap-4 rounded border border-[#ded3c9] px-4 text-sm">
+            <span className="text-neutral-500">Sort by:</span>
+            Newest First
+            <ChevronDown size={16} />
           </button>
+          <div className="flex overflow-hidden rounded border border-[#ded3c9]">
+            <button className="grid h-11 w-11 place-items-center border-r border-[#ded3c9] bg-pearl" aria-label="Grid view">
+              <Grid3X3 size={18} />
+            </button>
+            <button className="grid h-11 w-11 place-items-center" aria-label="List view">
+              <ListFilter size={18} />
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function ProductGrid() {
+function ProductGrid({ products }) {
   return (
     <div className="mt-6 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-      {dressProducts.map((product, index) => (
+      {products.map((product, index) => (
         <ProductCard product={product} selectedSize={index % 3 === 0 ? 'XS' : index % 2 === 0 ? 'M' : 'S'} key={product.name} />
       ))}
     </div>
   );
+}
+
+function mapApiProduct(product, index) {
+  const fallbackStyle = dressProducts[index % dressProducts.length];
+  const badge = product.isBestSeller ? 'Bestseller' : product.isNewArrival ? 'New' : '';
+
+  return {
+    name: product.name,
+    price: formatCurrency(product.price),
+    badge,
+    sizes: product.sizes?.length ? product.sizes : fallbackStyle.sizes,
+    accent: fallbackStyle.accent,
+    figure: fallbackStyle.figure,
+    image: product.images?.find((image) => image.isCover)?.url || product.images?.[0]?.url || '',
+  };
+}
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat('en-LK', {
+    currency: 'LKR',
+    maximumFractionDigits: 0,
+    style: 'currency',
+  }).format(value || 0);
 }
 
 function Pagination() {
