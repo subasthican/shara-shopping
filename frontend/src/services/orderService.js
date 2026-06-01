@@ -16,3 +16,8 @@ export async function getOrders(params = {}) {
   const { data } = await apiClient.get('/orders', { params });
   return data;
 }
+
+export async function getOrderById(orderId) {
+  const { data } = await apiClient.get(`/orders/${orderId}`);
+  return data;
+}
