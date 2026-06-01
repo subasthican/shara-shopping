@@ -7,6 +7,7 @@ import {
   SlidersHorizontal,
   Sparkles,
 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import heroImage from '../assets/home-hero.png';
 import Footer from '../components/Footer.jsx';
@@ -14,6 +15,7 @@ import Header from '../components/Header.jsx';
 import ProductCard from '../components/ProductCard.jsx';
 import { quickCategories, shopCategories } from '../data/homeData.js';
 import { dressFilters, dressProducts } from '../data/shopData.js';
+import { getProducts } from '../services/productService.js';
 
 const categoryDetails = {
   dresses: {
@@ -67,22 +69,68 @@ function slugify(value) {
 export default function CategoryPage() {
   const { categorySlug = 'dresses' } = useParams();
   const category = categoryDetails[categorySlug] || categoryDetails.dresses;
-  const products = getCategoryProducts(categorySlug);
+  const fallbackProducts = useMemo(() => getCategoryProducts(categorySlug), [categorySlug]);
+  const [products, setProducts] = useState(fallbackProducts);
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProducts = async () => {
+      setIsLoading(true);
+      setApiError('');
+
+      try {
+        const data = await getProducts({
+          category: getApiCategorySlug(categorySlug),
+          status: 'active',
+        });
+
+        if (isMounted) {
+          setProducts(data.length ? data.map(mapApiProduct) : fallbackProducts);
+          if (!data.length) {
+            setApiError('Showing curated picks while this category is being filled.');
+          }
+        }
+      } catch (error) {
+        if (isMounted) {
+          setProducts(fallbackProducts);
+          setApiError('Showing curated picks while the catalog loads.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [categorySlug, fallbackProducts]);
+
+  const viewCategory = {
+    ...category,
+    count: String(products.length),
+  };
 
   return (
     <div className="min-h-screen bg-white text-ink">
       <Header />
       <main>
-        <CategoryHero category={category} />
+        <CategoryHero category={viewCategory} />
         <CategoryTabs activeSlug={categorySlug} />
         <section className="px-4 pb-12">
           <div className="mx-auto max-w-7xl">
-            <Breadcrumb category={category} />
-            <CategoryIntro category={category} />
+            <Breadcrumb category={viewCategory} />
+            <CategoryIntro category={viewCategory} />
             <div className="mt-6 grid gap-8 lg:grid-cols-[260px_1fr]">
-              <FilterSidebar activeCategory={category.featured} />
+              <FilterSidebar activeCategory={viewCategory.featured} />
               <div>
-                <CategoryToolbar category={category} />
+                <CategoryToolbar apiError={apiError} category={viewCategory} isLoading={isLoading} productCount={products.length} />
                 <div className="mt-6 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
                   {products.map((product, index) => (
                     <ProductCard product={product} selectedSize={index % 3 === 0 ? 'S' : index % 2 === 0 ? 'M' : 'XS'} key={`${category.title}-${product.name}`} />
@@ -245,26 +293,35 @@ function FilterGroup({ title, children, last = false }) {
   );
 }
 
-function CategoryToolbar({ category }) {
+function CategoryToolbar({ apiError, category, isLoading, productCount }) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-neutral-700">Showing 1-8 of {category.count} {category.title}</p>
-      <div className="flex flex-wrap items-center gap-3">
-        <button className="inline-flex h-11 items-center gap-2 rounded border border-[#ded3c9] px-4 text-sm lg:hidden">
-          <SlidersHorizontal size={17} /> Filters
-        </button>
-        <button className="inline-flex h-11 min-w-52 items-center justify-between gap-4 rounded border border-[#ded3c9] px-4 text-sm">
-          <span className="text-neutral-500">Sort by:</span>
-          Newest First
-          <ChevronDown size={16} />
-        </button>
-        <div className="flex overflow-hidden rounded border border-[#ded3c9]">
-          <button className="grid h-11 w-11 place-items-center border-r border-[#ded3c9] bg-pearl" aria-label="Grid view">
-            <Grid3X3 size={18} />
+    <div>
+      {(isLoading || apiError) && (
+        <div className={`mb-4 rounded px-4 py-3 text-sm font-semibold ${apiError ? 'bg-[#fff3d8] text-[#9b6613]' : 'bg-blush text-rosewood'}`}>
+          {isLoading ? `Loading ${category.title.toLowerCase()}...` : apiError}
+        </div>
+      )}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-neutral-700">
+          Showing {productCount ? 1 : 0}-{productCount} of {category.count} {category.title}
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <button className="inline-flex h-11 items-center gap-2 rounded border border-[#ded3c9] px-4 text-sm lg:hidden">
+            <SlidersHorizontal size={17} /> Filters
           </button>
-          <button className="grid h-11 w-11 place-items-center" aria-label="List view">
-            <ListFilter size={18} />
+          <button className="inline-flex h-11 min-w-52 items-center justify-between gap-4 rounded border border-[#ded3c9] px-4 text-sm">
+            <span className="text-neutral-500">Sort by:</span>
+            Newest First
+            <ChevronDown size={16} />
           </button>
+          <div className="flex overflow-hidden rounded border border-[#ded3c9]">
+            <button className="grid h-11 w-11 place-items-center border-r border-[#ded3c9] bg-pearl" aria-label="Grid view">
+              <Grid3X3 size={18} />
+            </button>
+            <button className="grid h-11 w-11 place-items-center" aria-label="List view">
+              <ListFilter size={18} />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -297,6 +354,42 @@ function getCategoryProducts(categorySlug) {
   const start = Math.max(offset, 0);
 
   return [...dressProducts.slice(start), ...dressProducts.slice(0, start)].slice(0, 8);
+}
+
+function getApiCategorySlug(categorySlug) {
+  const categoryMap = {
+    bridal: 'evening-dresses',
+    clothing: '',
+    'co-ords': '',
+    dresses: '',
+    occasion: 'party-dresses',
+    tops: '',
+  };
+
+  return categoryMap[categorySlug] ?? categorySlug;
+}
+
+function mapApiProduct(product, index) {
+  const fallbackStyle = dressProducts[index % dressProducts.length];
+  const badge = product.isBestSeller ? 'Bestseller' : product.isNewArrival ? 'New' : '';
+
+  return {
+    name: product.name,
+    price: formatCurrency(product.price),
+    badge,
+    sizes: product.sizes?.length ? product.sizes : fallbackStyle.sizes,
+    accent: fallbackStyle.accent,
+    figure: fallbackStyle.figure,
+    image: product.images?.find((image) => image.isCover)?.url || product.images?.[0]?.url || '',
+  };
+}
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat('en-LK', {
+    currency: 'LKR',
+    maximumFractionDigits: 0,
+    style: 'currency',
+  }).format(value || 0);
 }
 
 function DressIcon() {
