@@ -15,6 +15,13 @@ cp .env.example .env
 npm run dev
 ```
 
+Create the first admin account after configuring backend `.env`:
+
+```bash
+cd backend
+npm run seed:admin
+```
+
 ## Run backend
 
 ```bash
