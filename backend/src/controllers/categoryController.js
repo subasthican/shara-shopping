@@ -2,9 +2,17 @@ import asyncHandler from 'express-async-handler';
 import mongoose from 'mongoose';
 import Category from '../models/Category.js';
 
+const CATEGORY_STATUS_FILTERS = ['all', 'active', 'inactive'];
+
 export const getCategories = asyncHandler(async (req, res) => {
-  const { search, status = 'all' } = req.query;
+  const search = String(req.query.search || '').trim();
+  const status = String(req.query.status || 'all').trim().toLowerCase();
   const query = {};
+
+  if (!CATEGORY_STATUS_FILTERS.includes(status)) {
+    res.status(400);
+    throw new Error('Category status filter is invalid.');
+  }
 
   if (status !== 'all') {
     query.isActive = status === 'active';
