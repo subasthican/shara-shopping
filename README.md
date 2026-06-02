@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Admin profile settings API built with Express, MongoDB, JWT auth, React, Vite, Tailwind CSS, and Lucide React icons.
+- Order success reference built with React, Vite, Tailwind CSS, customer order API integration, and Lucide React icons.
 
 ## Run frontend
 
