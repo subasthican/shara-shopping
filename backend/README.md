@@ -47,4 +47,7 @@ This creates or updates Shara demo categories, products, a customer, one order, 
 - `PUT /api/orders/:id/status`
 - `GET /api/orders/track/:orderId?contact=email-or-phone`
 - `POST /api/contact`
+- `GET /api/contact`
+- `GET /api/contact/:id`
+- `PUT /api/contact/:id/status`
 - `GET /api/dashboard/stats`
