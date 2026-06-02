@@ -1,5 +1,8 @@
 import asyncHandler from 'express-async-handler';
+import mongoose from 'mongoose';
 import ContactMessage from '../models/ContactMessage.js';
+
+const CONTACT_MESSAGE_STATUSES = ['new', 'read', 'replied', 'archived'];
 
 export const createContactMessage = asyncHandler(async (req, res) => {
   const messagePayload = normalizeContactMessage(req.body);
@@ -48,7 +51,18 @@ export const getContactMessageById = asyncHandler(async (req, res) => {
 });
 
 export const updateContactMessageStatus = asyncHandler(async (req, res) => {
-  const { status } = req.body;
+  const status = String(req.body.status || '').trim().toLowerCase();
+
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    res.status(400);
+    throw new Error('A valid contact message ID is required.');
+  }
+
+  if (!CONTACT_MESSAGE_STATUSES.includes(status)) {
+    res.status(400);
+    throw new Error('Contact message status is invalid.');
+  }
+
   const message = await ContactMessage.findByIdAndUpdate(
     req.params.id,
     { status },
