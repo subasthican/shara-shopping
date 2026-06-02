@@ -1,4 +1,5 @@
 import asyncHandler from 'express-async-handler';
+import mongoose from 'mongoose';
 import Category from '../models/Category.js';
 
 export const getCategories = asyncHandler(async (req, res) => {
@@ -35,6 +36,8 @@ export const createCategory = asyncHandler(async (req, res) => {
 });
 
 export const updateCategory = asyncHandler(async (req, res) => {
+  validateCategoryId(req.params.id, res);
+
   const categoryPayload = normalizeCategoryPayload(req.body, { partial: true });
   const errors = validateCategoryPayload(categoryPayload, { partial: true });
 
@@ -54,6 +57,8 @@ export const updateCategory = asyncHandler(async (req, res) => {
 });
 
 export const deleteCategory = asyncHandler(async (req, res) => {
+  validateCategoryId(req.params.id, res);
+
   const category = await Category.findByIdAndDelete(req.params.id);
 
   if (!category) {
@@ -121,4 +126,11 @@ function validateCategoryPayload(payload, { partial = false } = {}) {
   }
 
   return errors;
+}
+
+function validateCategoryId(id, res) {
+  if (!mongoose.isValidObjectId(id)) {
+    res.status(400);
+    throw new Error('A valid category ID is required.');
+  }
 }
