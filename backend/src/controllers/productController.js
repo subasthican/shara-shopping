@@ -3,9 +3,18 @@ import mongoose from 'mongoose';
 import Category from '../models/Category.js';
 import Product from '../models/Product.js';
 
+const PRODUCT_STATUS_FILTERS = ['all', 'active', 'draft', 'inactive'];
+
 export const getProducts = asyncHandler(async (req, res) => {
-  const { search, category, status = 'active' } = req.query;
+  const category = String(req.query.category || '').trim();
+  const search = String(req.query.search || '').trim();
+  const status = String(req.query.status || 'active').trim().toLowerCase();
   const query = {};
+
+  if (!PRODUCT_STATUS_FILTERS.includes(status)) {
+    res.status(400);
+    throw new Error('Product status filter is invalid.');
+  }
 
   if (status !== 'all') query.status = status;
   if (category) {
