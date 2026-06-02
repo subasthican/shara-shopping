@@ -25,29 +25,49 @@ export default function BuyNowModal({ product, selectedSize, onClose }) {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [customerErrors, setCustomerErrors] = useState({});
+  const [deliveryErrors, setDeliveryErrors] = useState({});
 
   const next = () => setStep((current) => Math.min(current + 1, 3));
   const back = () => setStep((current) => Math.max(current - 1, 1));
   const handleCustomerChange = (field, value) => {
     setCustomer((current) => ({ ...current, [field]: value }));
+    setCustomerErrors((current) => ({ ...current, [field]: '' }));
   };
   const handleDeliveryChange = (field, value) => {
     setDelivery((current) => ({ ...current, [field]: value }));
+    setDeliveryErrors((current) => ({ ...current, [field]: '' }));
+  };
+  const goToDelivery = () => {
+    const nextErrors = validateCustomer(customer);
+
+    if (Object.keys(nextErrors).length) {
+      setCustomerErrors(nextErrors);
+      return;
+    }
+
+    next();
   };
   const handleSubmit = async () => {
     setSubmitError('');
+    const nextCustomerErrors = validateCustomer(customer);
+    const nextDeliveryErrors = validateDelivery(delivery);
 
-    if (!customer.fullName || !customer.phone || !customer.email || !delivery.address || !delivery.city || !delivery.district) {
+    if (Object.keys(nextCustomerErrors).length || Object.keys(nextDeliveryErrors).length) {
+      setCustomerErrors(nextCustomerErrors);
+      setDeliveryErrors(nextDeliveryErrors);
       setSubmitError('Please complete all required fields before submitting your order.');
       return;
     }
 
+    const normalizedCustomer = normalizeCustomer(customer);
+    const normalizedDelivery = normalizeDelivery(delivery);
     setIsSubmitting(true);
 
     try {
       const order = await createOrder({
-        customer,
-        delivery,
+        customer: normalizedCustomer,
+        delivery: normalizedDelivery,
         items: [
           {
             productName: product.name,
@@ -100,14 +120,16 @@ export default function BuyNowModal({ product, selectedSize, onClose }) {
               {step === 2 && (
                 <CustomerDetails
                   customer={customer}
+                  errors={customerErrors}
                   onBack={back}
                   onChange={handleCustomerChange}
-                  onNext={next}
+                  onNext={goToDelivery}
                 />
               )}
               {step === 3 && (
                 <DeliveryDetails
                   delivery={delivery}
+                  errors={deliveryErrors}
                   isSubmitting={isSubmitting}
                   submitError={submitError}
                   onBack={back}
@@ -204,15 +226,15 @@ function ProductOptions({ product, selectedSize, setSelectedSize, quantity, setQ
   );
 }
 
-function CustomerDetails({ customer, onBack, onChange, onNext }) {
+function CustomerDetails({ customer, errors, onBack, onChange, onNext }) {
   return (
     <div className="pt-6">
       <SectionLabel>Your Details</SectionLabel>
       <div className="mt-5 grid gap-5 sm:grid-cols-2">
-        <Field label="Full Name" placeholder="Your full name" required value={customer.fullName} onChange={(event) => onChange('fullName', event.target.value)} />
-        <Field label="Phone Number" placeholder="+94 7X XXX XXXX" required value={customer.phone} onChange={(event) => onChange('phone', event.target.value)} />
-        <Field label="Email Address" placeholder="your@email.com" required type="email" help="We'll send your order confirmation here" value={customer.email} onChange={(event) => onChange('email', event.target.value)} />
-        <Field label="WhatsApp Number" placeholder="+94 7X XXX XXXX" help="Optional, for order updates" value={customer.whatsapp} onChange={(event) => onChange('whatsapp', event.target.value)} />
+        <Field error={errors.fullName} label="Full Name" placeholder="Your full name" required value={customer.fullName} onChange={(event) => onChange('fullName', event.target.value)} />
+        <Field error={errors.phone} label="Phone Number" placeholder="+94 7X XXX XXXX" required value={customer.phone} onChange={(event) => onChange('phone', event.target.value)} />
+        <Field error={errors.email} label="Email Address" placeholder="your@email.com" required type="email" help="We'll send your order confirmation here" value={customer.email} onChange={(event) => onChange('email', event.target.value)} />
+        <Field error={errors.whatsapp} label="WhatsApp Number" placeholder="+94 7X XXX XXXX" help="Optional, for order updates" value={customer.whatsapp} onChange={(event) => onChange('whatsapp', event.target.value)} />
       </div>
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <button className="btn-outline bg-white" onClick={onBack}>Back</button>
@@ -224,23 +246,24 @@ function CustomerDetails({ customer, onBack, onChange, onNext }) {
   );
 }
 
-function DeliveryDetails({ delivery, isSubmitting, submitError, onBack, onChange, onSubmit }) {
+function DeliveryDetails({ delivery, errors, isSubmitting, submitError, onBack, onChange, onSubmit }) {
   return (
     <div className="pt-6">
       <SectionLabel>Delivery Details</SectionLabel>
       <div className="mt-5 space-y-5">
-        <Field label="Address" placeholder="House number, street address" required value={delivery.address} onChange={(event) => onChange('address', event.target.value)} />
+        <Field error={errors.address} label="Address" placeholder="House number, street address" required value={delivery.address} onChange={(event) => onChange('address', event.target.value)} />
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="City" placeholder="Enter city" required value={delivery.city} onChange={(event) => onChange('city', event.target.value)} />
+          <Field error={errors.city} label="City" placeholder="Enter city" required value={delivery.city} onChange={(event) => onChange('city', event.target.value)} />
           <label>
             <span className="form-label">District <span className="text-rosewood">*</span></span>
-            <select className="form-control mt-2" value={delivery.district} onChange={(event) => onChange('district', event.target.value)}>
+            <select className="form-control mt-2" value={delivery.district} onChange={(event) => onChange('district', event.target.value)} aria-invalid={Boolean(errors.district)}>
               <option value="">Select district</option>
               <option>Colombo</option>
               <option>Gampaha</option>
               <option>Kandy</option>
               <option>Galle</option>
             </select>
+            {errors.district && <span className="mt-2 block text-xs font-semibold text-rosewood">{errors.district}</span>}
           </label>
         </div>
         <label>
@@ -307,13 +330,14 @@ function SuccessStep({ order, onClose }) {
   );
 }
 
-function Field({ label, required = false, help, ...props }) {
+function Field({ error, label, required = false, help, ...props }) {
   return (
     <label>
       <span className="form-label">
         {label} {required && <span className="text-rosewood">*</span>}
       </span>
-      <input className="form-control mt-2" {...props} />
+      <input className="form-control mt-2" aria-invalid={Boolean(error)} {...props} />
+      {error && <span className="mt-2 block text-xs font-semibold text-rosewood">{error}</span>}
       {help && <span className="mt-2 block text-xs text-neutral-500">{help}</span>}
     </label>
   );
@@ -329,4 +353,76 @@ function parsePrice(price) {
 
 function slugify(value) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+function validateCustomer(customer) {
+  const values = normalizeCustomer(customer);
+  const errors = {};
+
+  if (!values.fullName) {
+    errors.fullName = 'Full name is required.';
+  } else if (values.fullName.length < 2) {
+    errors.fullName = 'Enter at least 2 characters.';
+  }
+
+  if (!values.phone) {
+    errors.phone = 'Phone number is required.';
+  } else if (!isPhoneNumber(values.phone)) {
+    errors.phone = 'Enter a valid phone number.';
+  }
+
+  if (!values.email) {
+    errors.email = 'Email address is required.';
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
+    errors.email = 'Enter a valid email address.';
+  }
+
+  if (values.whatsapp && !isPhoneNumber(values.whatsapp)) {
+    errors.whatsapp = 'Enter a valid WhatsApp number.';
+  }
+
+  return errors;
+}
+
+function validateDelivery(delivery) {
+  const values = normalizeDelivery(delivery);
+  const errors = {};
+
+  if (!values.address) {
+    errors.address = 'Delivery address is required.';
+  } else if (values.address.length < 6) {
+    errors.address = 'Enter a more complete address.';
+  }
+
+  if (!values.city) {
+    errors.city = 'City is required.';
+  }
+
+  if (!values.district) {
+    errors.district = 'Select a district.';
+  }
+
+  return errors;
+}
+
+function normalizeCustomer(customer) {
+  return {
+    fullName: customer.fullName.trim(),
+    phone: customer.phone.trim(),
+    email: customer.email.trim().toLowerCase(),
+    whatsapp: customer.whatsapp.trim(),
+  };
+}
+
+function normalizeDelivery(delivery) {
+  return {
+    address: delivery.address.trim(),
+    city: delivery.city.trim(),
+    district: delivery.district.trim(),
+    note: delivery.note.trim(),
+  };
+}
+
+function isPhoneNumber(value) {
+  return /^[+()\d\s-]{7,18}$/.test(value);
 }
