@@ -4,6 +4,7 @@ import AdminLoginPage from './pages/AdminLoginPage.jsx';
 import AdminSettingsPage from './pages/AdminSettingsPage.jsx';
 import AddEditProductPage from './pages/AddEditProductPage.jsx';
 import ManageCategoriesPage from './pages/ManageCategoriesPage.jsx';
+import ManageContactMessagesPage from './pages/ManageContactMessagesPage.jsx';
 import ManageCustomersPage from './pages/ManageCustomersPage.jsx';
 import ManageOrdersPage from './pages/ManageOrdersPage.jsx';
 import ManageProductsPage from './pages/ManageProductsPage.jsx';
@@ -37,6 +38,7 @@ export default function App() {
       <Route path="/admin/products" element={<AdminPage><ManageProductsPage /></AdminPage>} />
       <Route path="/admin/categories" element={<AdminPage><ManageCategoriesPage /></AdminPage>} />
       <Route path="/admin/customers" element={<AdminPage><ManageCustomersPage /></AdminPage>} />
+      <Route path="/admin/messages" element={<AdminPage><ManageContactMessagesPage /></AdminPage>} />
       <Route path="/admin/orders" element={<AdminPage><ManageOrdersPage /></AdminPage>} />
       <Route path="/admin/orders/:orderId" element={<AdminPage><ViewOrderDetailsPage /></AdminPage>} />
       <Route path="/admin/products/new" element={<AdminPage><AddEditProductPage /></AdminPage>} />
