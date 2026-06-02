@@ -1,7 +1,7 @@
 import {
   ArrowLeft,
   Heart,
-  LockKeyhole,
+  MessageCircle,
   Minus,
   Plus,
   RefreshCw,
@@ -29,7 +29,7 @@ const cartItems = wishlistItems.slice(0, 2);
 const trustItems = [
   { icon: Truck, title: 'Free Shipping', copy: 'On orders over LKR 15,000' },
   { icon: RotateCcw, title: 'Easy Returns', copy: 'Within 7 days' },
-  { icon: ShieldCheck, title: 'Secure Payment', copy: '100% secure checkout' },
+  { icon: ShieldCheck, title: 'Manual Confirmation', copy: 'Owner confirms every order' },
   { icon: Headphones, title: '24/7 Support', copy: "We're here to help" },
 ];
 
@@ -118,7 +118,7 @@ function WishlistSummary() {
         <Send size={17} /> Add All to Cart
       </button>
       <div className="mt-8 space-y-5">
-        <TrustMini icon={ShieldCheck} title="Secure Checkout" copy="100% secure payment" />
+        <TrustMini icon={ShieldCheck} title="Manual Confirmation" copy="No online payment required" />
         <TrustMini icon={Truck} title="Free Shipping" copy="On orders over LKR 15,000" />
         <TrustMini icon={RotateCcw} title="Easy Returns" copy="Hassle-free returns" />
       </div>
@@ -132,7 +132,7 @@ function CartSection() {
       <div className="mx-auto max-w-7xl">
         <div>
           <h2 className="font-serif text-4xl">My Cart (2)</h2>
-          <p className="mt-2 text-neutral-700">Review your items and proceed to checkout.</p>
+          <p className="mt-2 text-neutral-700">Review your items before placing a manual order request.</p>
         </div>
         <div className="mt-6 grid gap-7 lg:grid-cols-[1fr_340px]">
           <section className="rounded-lg border border-[#eadfd8] bg-white p-5 shadow-sm">
@@ -222,14 +222,14 @@ function OrderSummary() {
         <span>Total Amount</span>
         <span>LKR 11,551</span>
       </div>
-      <button className="btn-primary mt-6 w-full gap-2">
-        <LockKeyhole size={17} /> Proceed to Checkout
-      </button>
-      <button className="mt-3 h-12 w-full rounded bg-[#ffc233] text-sm font-bold text-[#17315b]">
-        Pay with PayPal
-      </button>
+      <a className="btn-primary mt-6 w-full gap-2" href="/dresses">
+        <Send size={17} /> Place Order Request
+      </a>
+      <a className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 rounded border border-[#ded3c9] bg-white text-sm font-bold text-rosewood" href="/contact">
+        <MessageCircle size={17} /> Ask Before Ordering
+      </a>
       <p className="mt-5 flex items-center justify-center gap-2 text-sm text-neutral-700">
-        <ShieldCheck size={17} /> Secure Checkout <span>100% secure payment</span>
+        <ShieldCheck size={17} /> No online payment <span>We contact you to confirm</span>
       </p>
     </aside>
   );
