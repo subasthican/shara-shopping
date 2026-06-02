@@ -81,9 +81,7 @@ export const getOrders = asyncHandler(async (req, res) => {
 });
 
 export const getOrderById = asyncHandler(async (req, res) => {
-  const lookup = mongoose.isValidObjectId(req.params.id)
-    ? { _id: req.params.id }
-    : { orderNumber: req.params.id.replace(/^#/, '') };
+  const lookup = getOrderLookup(req.params.id, res);
   const order = await Order.findOne(lookup).populate('customerRef');
 
   if (!order) {
@@ -103,9 +101,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     throw new Error(errors.join(' '));
   }
 
-  const lookup = mongoose.isValidObjectId(req.params.id)
-    ? { _id: req.params.id }
-    : { orderNumber: req.params.id.replace(/^#/, '').toUpperCase() };
+  const lookup = getOrderLookup(req.params.id, res);
   const order = await Order.findOne(lookup);
 
   if (!order) {
@@ -250,4 +246,20 @@ function validateOrderStatusPayload({ status, note }) {
   }
 
   return errors;
+}
+
+function getOrderLookup(id, res) {
+  const orderId = String(id || '').trim();
+  const orderNumber = orderId.replace(/^#/, '').toUpperCase();
+
+  if (mongoose.isValidObjectId(orderId)) {
+    return { _id: orderId };
+  }
+
+  if (/^SH\d{4,}$/.test(orderNumber)) {
+    return { orderNumber };
+  }
+
+  res.status(400);
+  throw new Error('A valid order ID or order number is required.');
 }
