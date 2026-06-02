@@ -7,12 +7,14 @@ import {
   Sparkles,
   UsersRound,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import heroImage from '../assets/home-hero.png';
 import Footer from '../components/Footer.jsx';
 import Header from '../components/Header.jsx';
 import ProductCard from '../components/ProductCard.jsx';
 import { dressProducts } from '../data/shopData.js';
+import { getProducts } from '../services/productService.js';
 
 const occasions = [
   { icon: Gem, label: 'Wedding Guest', copy: 'Graceful dresses for ceremonies, receptions, and garden weddings.' },
@@ -27,6 +29,63 @@ const looks = [
 ];
 
 export default function OccasionPage() {
+  const [productLooks, setProductLooks] = useState(looks);
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadOccasionProducts = async () => {
+      setIsLoading(true);
+      setApiError('');
+
+      try {
+        const [partyProducts, eveningProducts] = await Promise.all([
+          getProducts({ category: 'party-dresses', status: 'active' }),
+          getProducts({ category: 'evening-dresses', status: 'active' }),
+        ]);
+
+        const nextLooks = [
+          {
+            title: 'Soft Romance',
+            products: (partyProducts.length ? partyProducts : eveningProducts).slice(0, 4).map(mapApiProduct),
+          },
+          {
+            title: 'Evening Polish',
+            products: (eveningProducts.length ? eveningProducts : partyProducts).slice(0, 4).map(mapApiProduct),
+          },
+        ];
+
+        if (isMounted) {
+          const hasProducts = nextLooks.some((look) => look.products.length);
+          setProductLooks(hasProducts ? nextLooks.map((look, index) => ({
+            ...look,
+            products: look.products.length ? look.products : looks[index].products,
+          })) : looks);
+          if (!hasProducts) {
+            setApiError('Showing curated occasion edits while this collection is being filled.');
+          }
+        }
+      } catch (error) {
+        if (isMounted) {
+          setProductLooks(looks);
+          setApiError('Showing curated occasion edits while the catalog loads.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadOccasionProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-white text-ink">
       <Header />
@@ -34,7 +93,7 @@ export default function OccasionPage() {
         <OccasionHero />
         <OccasionTiles />
         <FeaturedLook />
-        <ProductSections />
+        <ProductSections apiError={apiError} isLoading={isLoading} looks={productLooks} />
         <StylingStrip />
       </main>
       <Footer />
@@ -135,10 +194,15 @@ function FeaturedLook() {
   );
 }
 
-function ProductSections() {
+function ProductSections({ apiError, isLoading, looks }) {
   return (
     <section className="bg-white px-4 py-10" id="occasion-products">
       <div className="mx-auto max-w-7xl space-y-12">
+        {(isLoading || apiError) && (
+          <div className={`rounded px-4 py-3 text-sm font-semibold ${apiError ? 'bg-[#fff3d8] text-[#9b6613]' : 'bg-blush text-rosewood'}`}>
+            {isLoading ? 'Loading occasion edits...' : apiError}
+          </div>
+        )}
         {looks.map((look) => (
           <div key={look.title}>
             <div className="flex items-end justify-between gap-4">
@@ -160,6 +224,29 @@ function ProductSections() {
       </div>
     </section>
   );
+}
+
+function mapApiProduct(product, index) {
+  const fallbackStyle = dressProducts[index % dressProducts.length];
+  const badge = product.isBestSeller ? 'Bestseller' : product.isNewArrival ? 'New' : '';
+
+  return {
+    name: product.name,
+    price: formatCurrency(product.price),
+    badge,
+    sizes: product.sizes?.length ? product.sizes : fallbackStyle.sizes,
+    accent: fallbackStyle.accent,
+    figure: fallbackStyle.figure,
+    image: product.images?.find((image) => image.isCover)?.url || product.images?.[0]?.url || '',
+  };
+}
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat('en-LK', {
+    currency: 'LKR',
+    maximumFractionDigits: 0,
+    style: 'currency',
+  }).format(value || 0);
 }
 
 function StylingStrip() {
