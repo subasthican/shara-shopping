@@ -4,6 +4,8 @@ import Customer from '../models/Customer.js';
 import Order from '../models/Order.js';
 import { sendOrderNotification } from '../utils/sendOrderNotification.js';
 
+const ORDER_STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+
 function createOrderNumber() {
   return `SH${Date.now().toString().slice(-8)}`;
 }
@@ -93,10 +95,17 @@ export const getOrderById = asyncHandler(async (req, res) => {
 });
 
 export const updateOrderStatus = asyncHandler(async (req, res) => {
-  const { status, note } = req.body;
+  const { status, note } = normalizeOrderStatusPayload(req.body);
+  const errors = validateOrderStatusPayload({ status, note });
+
+  if (errors.length) {
+    res.status(400);
+    throw new Error(errors.join(' '));
+  }
+
   const lookup = mongoose.isValidObjectId(req.params.id)
     ? { _id: req.params.id }
-    : { orderNumber: req.params.id.replace(/^#/, '') };
+    : { orderNumber: req.params.id.replace(/^#/, '').toUpperCase() };
   const order = await Order.findOne(lookup);
 
   if (!order) {
@@ -220,4 +229,25 @@ function isEmail(value) {
 
 function isPhoneNumber(value) {
   return /^[+()\d\s-]{7,18}$/.test(value);
+}
+
+function normalizeOrderStatusPayload(payload = {}) {
+  return {
+    status: String(payload.status || '').trim().toLowerCase(),
+    note: String(payload.note || '').trim(),
+  };
+}
+
+function validateOrderStatusPayload({ status, note }) {
+  const errors = [];
+
+  if (!ORDER_STATUSES.includes(status)) {
+    errors.push('Order status is invalid.');
+  }
+
+  if (note.length > 240) {
+    errors.push('Order status note must be 240 characters or fewer.');
+  }
+
+  return errors;
 }
