@@ -5,6 +5,8 @@ import Order from '../models/Order.js';
 import { sendOrderNotification } from '../utils/sendOrderNotification.js';
 
 const ORDER_STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+const ORDER_STATUS_FILTERS = ['all', ...ORDER_STATUSES];
+const PAYMENT_STATUS_FILTERS = ['all', 'pending', 'paid', 'cancelled'];
 
 function createOrderNumber() {
   return `SH${Date.now().toString().slice(-8)}`;
@@ -56,8 +58,20 @@ export const createOrder = asyncHandler(async (req, res) => {
 });
 
 export const getOrders = asyncHandler(async (req, res) => {
-  const { paymentStatus = 'all', search, status = 'all' } = req.query;
+  const paymentStatus = String(req.query.paymentStatus || 'all').trim().toLowerCase();
+  const search = String(req.query.search || '').trim();
+  const status = String(req.query.status || 'all').trim().toLowerCase();
   const query = {};
+
+  if (!ORDER_STATUS_FILTERS.includes(status)) {
+    res.status(400);
+    throw new Error('Order status filter is invalid.');
+  }
+
+  if (!PAYMENT_STATUS_FILTERS.includes(paymentStatus)) {
+    res.status(400);
+    throw new Error('Payment status filter is invalid.');
+  }
 
   if (status !== 'all') {
     query.orderStatus = status;
