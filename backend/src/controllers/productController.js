@@ -39,12 +39,28 @@ export const getProductById = asyncHandler(async (req, res) => {
 });
 
 export const createProduct = asyncHandler(async (req, res) => {
-  const product = await Product.create(req.body);
+  const productPayload = normalizeProductPayload(req.body);
+  const errors = validateProductPayload(productPayload);
+
+  if (errors.length) {
+    res.status(400);
+    throw new Error(errors.join(' '));
+  }
+
+  const product = await Product.create(productPayload);
   res.status(201).json(product);
 });
 
 export const updateProduct = asyncHandler(async (req, res) => {
-  const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+  const productPayload = normalizeProductPayload(req.body, { partial: true });
+  const errors = validateProductPayload(productPayload, { partial: true });
+
+  if (errors.length) {
+    res.status(400);
+    throw new Error(errors.join(' '));
+  }
+
+  const product = await Product.findByIdAndUpdate(req.params.id, productPayload, { new: true, runValidators: true });
 
   if (!product) {
     res.status(404);
@@ -64,3 +80,153 @@ export const deleteProduct = asyncHandler(async (req, res) => {
 
   res.json({ message: 'Product deleted' });
 });
+
+function normalizeProductPayload(payload = {}, { partial = false } = {}) {
+  const productPayload = {};
+
+  if (!partial || payload.name !== undefined) {
+    productPayload.name = String(payload.name || '').trim();
+  }
+
+  if (!partial || payload.slug !== undefined || payload.name !== undefined) {
+    productPayload.slug = String(payload.slug || payload.name || '').trim().toLowerCase();
+  }
+
+  if (!partial || payload.sku !== undefined) {
+    productPayload.sku = String(payload.sku || '').trim().toUpperCase();
+  }
+
+  if (!partial || payload.category !== undefined) {
+    productPayload.category = payload.category;
+  }
+
+  if (!partial || payload.subcategory !== undefined) {
+    productPayload.subcategory = String(payload.subcategory || '').trim();
+  }
+
+  if (!partial || payload.brand !== undefined) {
+    productPayload.brand = String(payload.brand || 'Shara Collection').trim();
+  }
+
+  if (!partial || payload.tags !== undefined) {
+    productPayload.tags = normalizeTags(payload.tags);
+  }
+
+  if (!partial || payload.description !== undefined) {
+    productPayload.description = String(payload.description || '').trim();
+  }
+
+  if (!partial || payload.shortDescription !== undefined) {
+    productPayload.shortDescription = String(payload.shortDescription || '').trim();
+  }
+
+  if (!partial || payload.price !== undefined) {
+    productPayload.price = Number(payload.price || 0);
+  }
+
+  if (!partial || payload.salePrice !== undefined) {
+    productPayload.salePrice = payload.salePrice === '' || payload.salePrice === null ? undefined : Number(payload.salePrice);
+  }
+
+  if (!partial || payload.stock !== undefined) {
+    productPayload.stock = Number(payload.stock || 0);
+  }
+
+  if (!partial || payload.sizes !== undefined) {
+    productPayload.sizes = Array.isArray(payload.sizes) ? payload.sizes.map((size) => String(size).trim()) : [];
+  }
+
+  if (!partial || payload.colours !== undefined) {
+    productPayload.colours = Array.isArray(payload.colours)
+      ? payload.colours.map((colour) => ({
+          name: String(colour.name || '').trim(),
+          hex: String(colour.hex || '').trim(),
+        }))
+      : [];
+  }
+
+  if (!partial || payload.images !== undefined || payload.imageUrl !== undefined) {
+    productPayload.images = normalizeImages(payload.images, payload.imageUrl);
+  }
+
+  if (!partial || payload.status !== undefined) {
+    productPayload.status = String(payload.status || 'draft').trim().toLowerCase();
+  }
+
+  ['isFeatured', 'isNewArrival', 'isBestSeller'].forEach((field) => {
+    if (!partial || payload[field] !== undefined) {
+      productPayload[field] = Boolean(payload[field]);
+    }
+  });
+
+  return productPayload;
+}
+
+function normalizeTags(tags) {
+  if (Array.isArray(tags)) {
+    return tags.map((tag) => String(tag).trim()).filter(Boolean);
+  }
+
+  return String(tags || '')
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+}
+
+function normalizeImages(images = [], imageUrl = '') {
+  if (typeof imageUrl === 'string' && imageUrl.trim() && !images?.length) {
+    return [{ url: imageUrl.trim(), isCover: true }];
+  }
+
+  return Array.isArray(images)
+    ? images
+        .map((image, index) => ({
+          url: String(image.url || '').trim(),
+          publicId: String(image.publicId || '').trim(),
+          isCover: Boolean(image.isCover || index === 0),
+        }))
+        .filter((image) => image.url)
+    : [];
+}
+
+function validateProductPayload(payload, { partial = false } = {}) {
+  const errors = [];
+
+  if ((!partial || payload.name !== undefined) && payload.name.length < 2) {
+    errors.push('Product name must be at least 2 characters.');
+  }
+
+  if ((!partial || payload.slug !== undefined) && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(payload.slug)) {
+    errors.push('Product slug must use lowercase letters, numbers, and hyphens.');
+  }
+
+  if ((!partial || payload.sku !== undefined) && payload.sku.length < 3) {
+    errors.push('Product SKU must be at least 3 characters.');
+  }
+
+  if ((!partial || payload.category !== undefined) && !mongoose.isValidObjectId(payload.category)) {
+    errors.push('A valid product category is required.');
+  }
+
+  if ((!partial || payload.description !== undefined) && payload.description.length < 10) {
+    errors.push('Product description must be at least 10 characters.');
+  }
+
+  if ((!partial || payload.price !== undefined) && (!Number.isFinite(payload.price) || payload.price < 0)) {
+    errors.push('Product price must be a valid non-negative number.');
+  }
+
+  if ((!partial || payload.salePrice !== undefined) && payload.salePrice !== undefined && (!Number.isFinite(payload.salePrice) || payload.salePrice < 0)) {
+    errors.push('Product sale price must be a valid non-negative number.');
+  }
+
+  if ((!partial || payload.stock !== undefined) && (!Number.isFinite(payload.stock) || payload.stock < 0)) {
+    errors.push('Product stock must be a valid non-negative number.');
+  }
+
+  if ((!partial || payload.status !== undefined) && !['active', 'draft', 'inactive'].includes(payload.status)) {
+    errors.push('Product status is invalid.');
+  }
+
+  return errors;
+}
