@@ -9,8 +9,15 @@ function createOrderNumber() {
 }
 
 export const createOrder = asyncHandler(async (req, res) => {
-  const { customer, delivery, items = [] } = req.body;
-  const totalAmount = items.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 1), 0);
+  const { customer, delivery, items } = normalizeOrderPayload(req.body);
+  const errors = validateOrderPayload({ customer, delivery, items });
+
+  if (errors.length) {
+    res.status(400);
+    throw new Error(errors.join(' '));
+  }
+
+  const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const customerLookup = [{ phone: customer.phone }];
 
   if (customer.email) {
@@ -104,8 +111,14 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
 });
 
 export const trackOrder = asyncHandler(async (req, res) => {
-  const { orderId } = req.params;
-  const { contact } = req.query;
+  const orderId = String(req.params.orderId || '').trim().replace(/^#/, '').toUpperCase();
+  const contact = String(req.query.contact || '').trim().toLowerCase();
+
+  if (!/^SH\d{4,}$/i.test(orderId) || (!isEmail(contact) && !isPhoneNumber(contact))) {
+    res.status(400);
+    throw new Error('A valid order ID and email or phone number are required');
+  }
+
   const order = await Order.findOne({
     orderNumber: orderId,
     $or: [{ 'customer.email': contact }, { 'customer.phone': contact }],
@@ -118,3 +131,93 @@ export const trackOrder = asyncHandler(async (req, res) => {
 
   res.json(order);
 });
+
+function normalizeOrderPayload(payload = {}) {
+  const customer = payload.customer || {};
+  const delivery = payload.delivery || {};
+  const items = Array.isArray(payload.items) ? payload.items : [];
+
+  return {
+    customer: {
+      fullName: String(customer.fullName || '').trim(),
+      phone: String(customer.phone || '').trim(),
+      whatsapp: String(customer.whatsapp || '').trim(),
+      email: String(customer.email || '').trim().toLowerCase(),
+    },
+    delivery: {
+      address: String(delivery.address || '').trim(),
+      city: String(delivery.city || '').trim(),
+      district: String(delivery.district || '').trim(),
+      note: String(delivery.note || '').trim(),
+    },
+    items: items.map((item) => ({
+      product: item.product,
+      productName: String(item.productName || '').trim(),
+      sku: String(item.sku || '').trim(),
+      size: String(item.size || '').trim(),
+      colour: item.colour || {},
+      quantity: Number(item.quantity || 1),
+      price: Number(item.price || 0),
+    })),
+  };
+}
+
+function validateOrderPayload({ customer, delivery, items }) {
+  const errors = [];
+
+  if (customer.fullName.length < 2) {
+    errors.push('Customer full name must be at least 2 characters.');
+  }
+
+  if (!isPhoneNumber(customer.phone)) {
+    errors.push('A valid phone number is required.');
+  }
+
+  if (!isEmail(customer.email)) {
+    errors.push('A valid email address is required.');
+  }
+
+  if (customer.whatsapp && !isPhoneNumber(customer.whatsapp)) {
+    errors.push('WhatsApp number is invalid.');
+  }
+
+  if (delivery.address.length < 6) {
+    errors.push('A complete delivery address is required.');
+  }
+
+  if (!delivery.city) {
+    errors.push('Delivery city is required.');
+  }
+
+  if (!delivery.district) {
+    errors.push('Delivery district is required.');
+  }
+
+  if (!items.length) {
+    errors.push('At least one order item is required.');
+  }
+
+  items.forEach((item, index) => {
+    if (!item.productName) {
+      errors.push(`Order item ${index + 1} requires a product name.`);
+    }
+
+    if (!Number.isFinite(item.price) || item.price < 0) {
+      errors.push(`Order item ${index + 1} has an invalid price.`);
+    }
+
+    if (!Number.isFinite(item.quantity) || item.quantity < 1) {
+      errors.push(`Order item ${index + 1} has an invalid quantity.`);
+    }
+  });
+
+  return errors;
+}
+
+function isEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function isPhoneNumber(value) {
+  return /^[+()\d\s-]{7,18}$/.test(value);
+}
