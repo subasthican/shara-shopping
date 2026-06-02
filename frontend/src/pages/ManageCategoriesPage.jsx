@@ -24,7 +24,7 @@ import {
   Trash2,
   UsersRound,
 } from 'lucide-react';
-import { deleteCategory, getCategories } from '../services/categoryService.js';
+import { createCategory, deleteCategory, getCategories, updateCategory } from '../services/categoryService.js';
 
 const nav = [
   [Home, 'Dashboard', '/admin/dashboard'],
@@ -63,6 +63,15 @@ const categories = [
   image: '',
 }));
 
+const emptyCategoryForm = {
+  id: '',
+  name: '',
+  description: '',
+  imageUrl: '',
+  isActive: true,
+  sortOrder: '0',
+};
+
 export default function ManageCategoriesPage() {
   const [categoryRows, setCategoryRows] = useState(categories);
   const [filters, setFilters] = useState({
@@ -73,6 +82,9 @@ export default function ManageCategoriesPage() {
   const [apiError, setApiError] = useState('');
   const [notice, setNotice] = useState('');
   const [deletingId, setDeletingId] = useState('');
+  const [form, setForm] = useState(emptyCategoryForm);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -136,6 +148,68 @@ export default function ManageCategoriesPage() {
     }
   };
 
+  const openCreateForm = () => {
+    setForm(emptyCategoryForm);
+    setIsFormOpen(true);
+    setApiError('');
+    setNotice('');
+  };
+
+  const openEditForm = (category) => {
+    if (!category.id) {
+      setApiError('Demo categories cannot be edited. Connect the backend catalog first.');
+      return;
+    }
+
+    setForm({
+      id: category.id,
+      name: category.name,
+      description: category.description,
+      imageUrl: category.image || '',
+      isActive: category.statusKey === 'active',
+      sortOrder: String(category.sortOrder || 0),
+    });
+    setIsFormOpen(true);
+    setApiError('');
+    setNotice('');
+  };
+
+  const closeForm = () => {
+    setForm(emptyCategoryForm);
+    setIsFormOpen(false);
+  };
+
+  const updateForm = (field, value) => {
+    setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleSaveCategory = async (event) => {
+    event.preventDefault();
+    setIsSaving(true);
+    setApiError('');
+    setNotice('');
+
+    try {
+      const payload = buildCategoryPayload(form);
+      const savedCategory = form.id
+        ? await updateCategory(form.id, payload)
+        : await createCategory(payload);
+      const mappedCategory = mapApiCategory(savedCategory, categoryRows.length);
+
+      setCategoryRows((currentCategories) => (
+        form.id
+          ? currentCategories.map((category) => category.id === form.id ? mappedCategory : category)
+          : [mappedCategory, ...currentCategories]
+      ));
+      setNotice(`${savedCategory.name} ${form.id ? 'updated' : 'created'} successfully.`);
+      closeForm();
+    } catch (error) {
+      setApiError(error.response?.data?.message || 'Unable to save category. Check required fields and admin access.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#fbf7f4] text-ink">
       <div className="grid lg:grid-cols-[280px_1fr]">
@@ -148,9 +222,18 @@ export default function ManageCategoriesPage() {
                 <h1 className="text-3xl font-extrabold">Manage Categories</h1>
                 <p className="mt-3 text-sm text-neutral-600">Dashboard <span className="mx-2">›</span> Categories</p>
               </div>
-              <button className="btn-primary h-12 gap-2"><Plus size={18} /> Add New Category</button>
+              <button className="btn-primary h-12 gap-2" onClick={openCreateForm}><Plus size={18} /> Add New Category</button>
             </div>
             <Stats stats={stats} />
+            {isFormOpen && (
+              <CategoryForm
+                form={form}
+                isSaving={isSaving}
+                onCancel={closeForm}
+                onSave={handleSaveCategory}
+                updateForm={updateForm}
+              />
+            )}
             <Filters filters={filters} setFilters={setFilters} />
             <CategoryTable
               apiError={apiError}
@@ -159,6 +242,7 @@ export default function ManageCategoriesPage() {
               isLoading={isLoading}
               notice={notice}
               onDeleteCategory={handleDeleteCategory}
+              onEditCategory={openEditForm}
             />
           </div>
         </main>
@@ -269,7 +353,40 @@ function Filters({ filters, setFilters }) {
   );
 }
 
-function CategoryTable({ apiError, categories, deletingId, isLoading, notice, onDeleteCategory }) {
+function CategoryForm({ form, isSaving, onCancel, onSave, updateForm }) {
+  return (
+    <form className="mt-6 rounded-lg border border-[#eadfd8] bg-white p-5 shadow-sm" onSubmit={onSave}>
+      <div className="grid gap-5 lg:grid-cols-[1fr_1.2fr_0.7fr_0.5fr_auto] lg:items-end">
+        <label>
+          <span className="form-label">Category Name <span className="text-rosewood">*</span></span>
+          <input className="form-control mt-2" required value={form.name} onChange={(event) => updateForm('name', event.target.value)} />
+        </label>
+        <label>
+          <span className="form-label">Description</span>
+          <input className="form-control mt-2" value={form.description} onChange={(event) => updateForm('description', event.target.value)} />
+        </label>
+        <label>
+          <span className="form-label">Image URL</span>
+          <input className="form-control mt-2" value={form.imageUrl} onChange={(event) => updateForm('imageUrl', event.target.value)} />
+        </label>
+        <label>
+          <span className="form-label">Sort Order</span>
+          <input className="form-control mt-2" type="number" value={form.sortOrder} onChange={(event) => updateForm('sortOrder', event.target.value)} />
+        </label>
+        <div className="flex gap-3">
+          <button className="h-12 rounded border border-[#ded3c9] px-5 font-semibold" onClick={onCancel} type="button">Cancel</button>
+          <button className="btn-primary h-12 px-5" disabled={isSaving} type="submit">{isSaving ? 'Saving...' : 'Save'}</button>
+        </div>
+      </div>
+      <label className="mt-4 flex items-center gap-3 text-sm font-semibold">
+        <input checked={form.isActive} onChange={(event) => updateForm('isActive', event.target.checked)} type="checkbox" />
+        Active category
+      </label>
+    </form>
+  );
+}
+
+function CategoryTable({ apiError, categories, deletingId, isLoading, notice, onDeleteCategory, onEditCategory }) {
   return (
     <section className="mt-6 overflow-hidden rounded-lg border border-[#eadfd8] bg-white p-5 shadow-sm">
       {(isLoading || apiError || notice) && (
@@ -292,7 +409,7 @@ function CategoryTable({ apiError, categories, deletingId, isLoading, notice, on
           </thead>
           <tbody className="divide-y divide-[#eadfd8]">
             {categories.map((category, index) => (
-              <CategoryRow category={category} deletingId={deletingId} index={index + 1} key={category.name} onDeleteCategory={onDeleteCategory} />
+              <CategoryRow category={category} deletingId={deletingId} index={index + 1} key={category.name} onDeleteCategory={onDeleteCategory} onEditCategory={onEditCategory} />
             ))}
           </tbody>
         </table>
@@ -313,7 +430,7 @@ function CategoryTable({ apiError, categories, deletingId, isLoading, notice, on
   );
 }
 
-function CategoryRow({ category, deletingId, index, onDeleteCategory }) {
+function CategoryRow({ category, deletingId, index, onDeleteCategory, onEditCategory }) {
   const isDeleting = deletingId === category.id;
 
   return (
@@ -337,7 +454,7 @@ function CategoryRow({ category, deletingId, index, onDeleteCategory }) {
       <td>{category.created}</td>
       <td>
         <div className="flex justify-end gap-3">
-          <button className="grid h-10 w-10 place-items-center rounded border border-[#ded3c9]" aria-label={`Edit ${category.name}`}><Pencil size={17} /></button>
+          <button className="grid h-10 w-10 place-items-center rounded border border-[#ded3c9]" aria-label={`Edit ${category.name}`} onClick={() => onEditCategory(category)}><Pencil size={17} /></button>
           <button
             className="grid h-10 w-10 place-items-center rounded border border-[#ded3c9] text-rosewood disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={`Delete ${category.name}`}
@@ -383,6 +500,18 @@ function mapApiCategory(category, index) {
     created: formatDate(category.createdAt),
     figure: figures[index % figures.length],
     image: category.image?.url || '',
+    sortOrder: category.sortOrder || 0,
+  };
+}
+
+function buildCategoryPayload(form) {
+  return {
+    name: form.name,
+    slug: slugify(form.name),
+    description: form.description,
+    image: form.imageUrl ? { url: form.imageUrl, publicId: '' } : {},
+    isActive: form.isActive,
+    sortOrder: Number(form.sortOrder || 0),
   };
 }
 
@@ -398,4 +527,8 @@ function formatDate(value) {
 
 function PageButton({ children, active = false }) {
   return <button className={`grid h-10 min-w-10 place-items-center rounded border px-3 font-semibold ${active ? 'border-rosewood bg-rosewood text-white' : 'border-[#ded3c9] bg-white text-ink'}`}>{children}</button>;
+}
+
+function slugify(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
