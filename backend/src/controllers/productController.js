@@ -16,6 +16,16 @@ export const getProducts = asyncHandler(async (req, res) => {
     throw new Error('Product status filter is invalid.');
   }
 
+  if (category.length > 80) {
+    res.status(400);
+    throw new Error('Product category filter must be 80 characters or fewer.');
+  }
+
+  if (search.length > 80) {
+    res.status(400);
+    throw new Error('Product search filter must be 80 characters or fewer.');
+  }
+
   if (status !== 'all') query.status = status;
   if (category) {
     const categoryDocument = await Category.findOne({ slug: category }).select('_id');
