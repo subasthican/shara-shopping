@@ -24,7 +24,7 @@ import {
   Trash2,
   UsersRound,
 } from 'lucide-react';
-import { getCategories } from '../services/categoryService.js';
+import { deleteCategory, getCategories } from '../services/categoryService.js';
 
 const nav = [
   [Home, 'Dashboard', '/admin/dashboard'],
@@ -71,6 +71,8 @@ export default function ManageCategoriesPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [deletingId, setDeletingId] = useState('');
 
   useEffect(() => {
     let isMounted = true;
@@ -78,6 +80,7 @@ export default function ManageCategoriesPage() {
     const loadCategories = async () => {
       setIsLoading(true);
       setApiError('');
+      setNotice('');
 
       try {
         const data = await getCategories({
@@ -109,6 +112,30 @@ export default function ManageCategoriesPage() {
 
   const stats = useMemo(() => buildStats(categoryRows), [categoryRows]);
 
+  const handleDeleteCategory = async (category) => {
+    if (!category.id) {
+      setApiError('Demo categories cannot be deleted. Connect the backend catalog first.');
+      return;
+    }
+
+    const shouldDelete = window.confirm(`Delete ${category.name}? This cannot be undone.`);
+    if (!shouldDelete) return;
+
+    setDeletingId(category.id);
+    setApiError('');
+    setNotice('');
+
+    try {
+      await deleteCategory(category.id);
+      setCategoryRows((currentCategories) => currentCategories.filter((item) => item.id !== category.id));
+      setNotice(`${category.name} deleted successfully.`);
+    } catch (error) {
+      setApiError(error.response?.data?.message || 'Unable to delete category. Check admin access and try again.');
+    } finally {
+      setDeletingId('');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#fbf7f4] text-ink">
       <div className="grid lg:grid-cols-[280px_1fr]">
@@ -125,7 +152,14 @@ export default function ManageCategoriesPage() {
             </div>
             <Stats stats={stats} />
             <Filters filters={filters} setFilters={setFilters} />
-            <CategoryTable apiError={apiError} categories={categoryRows} isLoading={isLoading} />
+            <CategoryTable
+              apiError={apiError}
+              categories={categoryRows}
+              deletingId={deletingId}
+              isLoading={isLoading}
+              notice={notice}
+              onDeleteCategory={handleDeleteCategory}
+            />
           </div>
         </main>
       </div>
@@ -235,12 +269,12 @@ function Filters({ filters, setFilters }) {
   );
 }
 
-function CategoryTable({ apiError, categories, isLoading }) {
+function CategoryTable({ apiError, categories, deletingId, isLoading, notice, onDeleteCategory }) {
   return (
     <section className="mt-6 overflow-hidden rounded-lg border border-[#eadfd8] bg-white p-5 shadow-sm">
-      {(isLoading || apiError) && (
-        <div className={`mb-5 rounded-lg px-4 py-3 text-sm font-semibold ${apiError ? 'bg-[#fff3d8] text-[#9b6613]' : 'bg-blush text-rosewood'}`}>
-          {isLoading ? 'Loading categories...' : apiError}
+      {(isLoading || apiError || notice) && (
+        <div className={`mb-5 rounded-lg px-4 py-3 text-sm font-semibold ${apiError ? 'bg-[#fff3d8] text-[#9b6613]' : notice ? 'bg-[#dcf5ea] text-[#15945d]' : 'bg-blush text-rosewood'}`}>
+          {isLoading ? 'Loading categories...' : notice || apiError}
         </div>
       )}
       <div className="overflow-x-auto">
@@ -258,7 +292,7 @@ function CategoryTable({ apiError, categories, isLoading }) {
           </thead>
           <tbody className="divide-y divide-[#eadfd8]">
             {categories.map((category, index) => (
-              <CategoryRow category={category} index={index + 1} key={category.name} />
+              <CategoryRow category={category} deletingId={deletingId} index={index + 1} key={category.name} onDeleteCategory={onDeleteCategory} />
             ))}
           </tbody>
         </table>
@@ -279,7 +313,9 @@ function CategoryTable({ apiError, categories, isLoading }) {
   );
 }
 
-function CategoryRow({ category, index }) {
+function CategoryRow({ category, deletingId, index, onDeleteCategory }) {
+  const isDeleting = deletingId === category.id;
+
   return (
     <tr>
       <td className="py-3 font-semibold">{index}</td>
@@ -302,7 +338,14 @@ function CategoryRow({ category, index }) {
       <td>
         <div className="flex justify-end gap-3">
           <button className="grid h-10 w-10 place-items-center rounded border border-[#ded3c9]" aria-label={`Edit ${category.name}`}><Pencil size={17} /></button>
-          <button className="grid h-10 w-10 place-items-center rounded border border-[#ded3c9] text-rosewood" aria-label={`Delete ${category.name}`}><Trash2 size={17} /></button>
+          <button
+            className="grid h-10 w-10 place-items-center rounded border border-[#ded3c9] text-rosewood disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label={`Delete ${category.name}`}
+            disabled={isDeleting}
+            onClick={() => onDeleteCategory(category)}
+          >
+            {isDeleting ? <Timer size={17} /> : <Trash2 size={17} />}
+          </button>
         </div>
       </td>
     </tr>
@@ -331,6 +374,7 @@ function mapApiCategory(category, index) {
   const status = category.isActive ? 'Active' : 'Inactive';
 
   return {
+    id: category._id,
     name: category.name,
     description: category.description || 'No description added yet.',
     products: 0,
