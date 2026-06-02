@@ -87,11 +87,13 @@ export const getOrders = asyncHandler(async (req, res) => {
   }
 
   if (search) {
+    const safeSearch = escapeRegex(search);
+
     query.$or = [
-      { orderNumber: { $regex: search, $options: 'i' } },
-      { 'customer.fullName': { $regex: search, $options: 'i' } },
-      { 'customer.email': { $regex: search, $options: 'i' } },
-      { 'customer.phone': { $regex: search, $options: 'i' } },
+      { orderNumber: { $regex: safeSearch, $options: 'i' } },
+      { 'customer.fullName': { $regex: safeSearch, $options: 'i' } },
+      { 'customer.email': { $regex: safeSearch, $options: 'i' } },
+      { 'customer.phone': { $regex: safeSearch, $options: 'i' } },
     ];
   }
 
@@ -281,4 +283,8 @@ function getOrderLookup(id, res) {
 
   res.status(400);
   throw new Error('A valid order ID or order number is required.');
+}
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
