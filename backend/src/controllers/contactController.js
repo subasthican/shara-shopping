@@ -28,6 +28,11 @@ export const getContactMessages = asyncHandler(async (req, res) => {
     throw new Error('Contact message status filter is invalid.');
   }
 
+  if (search.length > 80) {
+    res.status(400);
+    throw new Error('Contact message search filter must be 80 characters or fewer.');
+  }
+
   if (status !== 'all') {
     query.status = status;
   }
