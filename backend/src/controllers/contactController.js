@@ -40,6 +40,8 @@ export const getContactMessages = asyncHandler(async (req, res) => {
 });
 
 export const getContactMessageById = asyncHandler(async (req, res) => {
+  validateContactMessageId(req.params.id, res);
+
   const message = await ContactMessage.findById(req.params.id);
 
   if (!message) {
@@ -53,10 +55,7 @@ export const getContactMessageById = asyncHandler(async (req, res) => {
 export const updateContactMessageStatus = asyncHandler(async (req, res) => {
   const status = String(req.body.status || '').trim().toLowerCase();
 
-  if (!mongoose.isValidObjectId(req.params.id)) {
-    res.status(400);
-    throw new Error('A valid contact message ID is required.');
-  }
+  validateContactMessageId(req.params.id, res);
 
   if (!CONTACT_MESSAGE_STATUSES.includes(status)) {
     res.status(400);
@@ -119,4 +118,11 @@ function isEmail(value) {
 
 function isPhoneNumber(value) {
   return /^[+()\d\s-]{7,18}$/.test(value);
+}
+
+function validateContactMessageId(id, res) {
+  if (!mongoose.isValidObjectId(id)) {
+    res.status(400);
+    throw new Error('A valid contact message ID is required.');
+  }
 }
