@@ -40,6 +40,7 @@ export default function App() {
       <Route path="/admin/orders" element={<AdminPage><ManageOrdersPage /></AdminPage>} />
       <Route path="/admin/orders/:orderId" element={<AdminPage><ViewOrderDetailsPage /></AdminPage>} />
       <Route path="/admin/products/new" element={<AdminPage><AddEditProductPage /></AdminPage>} />
+      <Route path="/admin/products/:productId/edit" element={<AdminPage><AddEditProductPage /></AdminPage>} />
     </Routes>
   );
 }
