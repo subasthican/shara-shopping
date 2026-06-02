@@ -73,6 +73,11 @@ export const getOrders = asyncHandler(async (req, res) => {
     throw new Error('Payment status filter is invalid.');
   }
 
+  if (search.length > 80) {
+    res.status(400);
+    throw new Error('Order search filter must be 80 characters or fewer.');
+  }
+
   if (status !== 'all') {
     query.orderStatus = status;
   }
