@@ -452,7 +452,7 @@ function ProductRow({ product }) {
           <a className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" href={`/products/${slugify(product.name)}`} aria-label={`View ${product.name}`}>
             <Eye size={16} />
           </a>
-          <a className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" href="/admin/products/new" aria-label={`Edit ${product.name}`}>
+          <a className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" href={product.editPath || '/admin/products/new'} aria-label={`Edit ${product.name}`}>
             <Edit3 size={16} />
           </a>
           <button className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9] text-rosewood" aria-label={`Delete ${product.name}`}>
@@ -511,6 +511,7 @@ function mapApiProduct(product, index) {
     figure: fallbackStyle.figure,
     image: product.images?.find((image) => image.isCover)?.url || product.images?.[0]?.url || '',
     isBestSeller: Boolean(product.isBestSeller),
+    editPath: `/admin/products/${product._id}/edit`,
   };
 }
 
