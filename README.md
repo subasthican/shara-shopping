@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Backend product search validation built with Express, MongoDB, product APIs, and catalog browsing workflows.
+- Backend order search validation built with Express, MongoDB, order APIs, and admin order workflows.
 
 ## Run frontend
 
