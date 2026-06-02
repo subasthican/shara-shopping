@@ -3,8 +3,19 @@ import mongoose from 'mongoose';
 import Customer from '../models/Customer.js';
 
 export const getCustomers = asyncHandler(async (req, res) => {
-  const { district, search } = req.query;
+  const district = String(req.query.district || '').trim();
+  const search = String(req.query.search || '').trim();
   const query = {};
+
+  if (district.length > 80) {
+    res.status(400);
+    throw new Error('Customer district filter must be 80 characters or fewer.');
+  }
+
+  if (search.length > 80) {
+    res.status(400);
+    throw new Error('Customer search filter must be 80 characters or fewer.');
+  }
 
   if (district) {
     query['addresses.district'] = district;
