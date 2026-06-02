@@ -1,4 +1,4 @@
-import { Check, ChevronRight, Minus, Plus, X } from 'lucide-react';
+import { Check, ChevronRight, Copy, Minus, Plus, Search, X } from 'lucide-react';
 import { useState } from 'react';
 import { createOrder } from '../services/orderService.js';
 
@@ -8,6 +8,7 @@ const defaultColour = { name: 'Blush Pink', hex: '#eeb5b6' };
 export default function BuyNowModal({ product, selectedSize, onClose }) {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const [submittedOrder, setSubmittedOrder] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [size, setSize] = useState(selectedSize);
   const [customer, setCustomer] = useState({
@@ -44,7 +45,7 @@ export default function BuyNowModal({ product, selectedSize, onClose }) {
     setIsSubmitting(true);
 
     try {
-      await createOrder({
+      const order = await createOrder({
         customer,
         delivery,
         items: [
@@ -58,6 +59,7 @@ export default function BuyNowModal({ product, selectedSize, onClose }) {
           },
         ],
       });
+      setSubmittedOrder(order);
       setSubmitted(true);
     } catch (error) {
       setSubmitError(error.response?.data?.message || 'We could not submit your order right now. Please try again.');
@@ -82,7 +84,7 @@ export default function BuyNowModal({ product, selectedSize, onClose }) {
           <StepTabs currentStep={submitted ? 3 : step} />
 
           {submitted ? (
-            <SuccessStep onClose={onClose} />
+            <SuccessStep order={submittedOrder} onClose={onClose} />
           ) : (
             <>
               {step === 1 && (
@@ -262,7 +264,9 @@ function DeliveryDetails({ delivery, isSubmitting, submitError, onBack, onChange
   );
 }
 
-function SuccessStep({ onClose }) {
+function SuccessStep({ order, onClose }) {
+  const orderNumber = order?.orderNumber ? `#${order.orderNumber}` : 'We are preparing your reference';
+
   return (
     <div className="pt-6">
       <div className="rounded-lg border border-[#b7d8b2] bg-gradient-to-br from-[#f8fff5] to-[#eef9ea] px-6 py-10 text-center shadow-sm">
@@ -273,10 +277,32 @@ function SuccessStep({ onClose }) {
         <p className="mx-auto mt-4 max-w-md text-neutral-700">
           We will contact you within 24 hours by phone or WhatsApp.
         </p>
+        <div className="mx-auto mt-6 max-w-md rounded-lg border border-[#cfe5ca] bg-white px-5 py-4 text-left">
+          <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-gold">Track Order Reference</p>
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="font-serif text-2xl font-bold text-rosewood">{orderNumber}</p>
+            {order?.orderNumber && (
+              <button
+                className="inline-flex h-10 items-center justify-center gap-2 rounded border border-[#ded3c9] bg-white px-4 text-sm font-semibold"
+                onClick={() => navigator.clipboard?.writeText(order.orderNumber)}
+              >
+                <Copy size={16} /> Copy
+              </button>
+            )}
+          </div>
+          <p className="mt-3 text-sm text-neutral-600">
+            Use this reference with your email or phone number on the Track Order page.
+          </p>
+        </div>
       </div>
-      <button className="btn-outline mt-6 w-full border-rosewood bg-white text-rosewood" onClick={onClose}>
-        Continue Shopping
-      </button>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <a className="btn-primary gap-3" href="/track-order">
+          Track Order <Search size={18} />
+        </a>
+        <button className="btn-outline w-full border-rosewood bg-white text-rosewood" onClick={onClose}>
+          Continue Shopping
+        </button>
+      </div>
     </div>
   );
 }
