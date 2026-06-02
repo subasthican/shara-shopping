@@ -97,18 +97,23 @@ function MessageForm() {
     subject: '',
     message: '',
   });
+  const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', message: '' });
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
+    setErrors((current) => ({ ...current, [field]: '' }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setFeedback({ type: '', message: '' });
 
-    if (!form.fullName || !form.email || !form.subject || !form.message) {
+    const nextErrors = validateContactForm(form);
+
+    if (Object.keys(nextErrors).length) {
+      setErrors(nextErrors);
       setFeedback({ type: 'error', message: 'Please complete all required fields before sending your message.' });
       return;
     }
@@ -116,8 +121,9 @@ function MessageForm() {
     setIsSubmitting(true);
 
     try {
-      await createContactMessage(form);
+      await createContactMessage(normalizeContactForm(form));
       setForm({ fullName: '', email: '', phone: '', subject: '', message: '' });
+      setErrors({});
       setFeedback({ type: 'success', message: 'Message sent successfully. We will reply within 24 hours.' });
     } catch (error) {
       setFeedback({ type: 'error', message: error.response?.data?.message || 'We could not send your message right now. Please try again.' });
@@ -132,23 +138,25 @@ function MessageForm() {
       <p className="mt-3 text-sm text-neutral-700">Fill out the form below and we&apos;ll get back to you as soon as possible.</p>
       <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Your Name" required placeholder="Enter your name" value={form.fullName} onChange={(event) => updateField('fullName', event.target.value)} />
-          <Field label="Your Email" required placeholder="Enter your email" type="email" value={form.email} onChange={(event) => updateField('email', event.target.value)} />
+          <Field error={errors.fullName} label="Your Name" required placeholder="Enter your name" value={form.fullName} onChange={(event) => updateField('fullName', event.target.value)} />
+          <Field error={errors.email} label="Your Email" required placeholder="Enter your email" type="email" value={form.email} onChange={(event) => updateField('email', event.target.value)} />
         </div>
-        <Field label="Phone Number" placeholder="+94 7X XXX XXXX" value={form.phone} onChange={(event) => updateField('phone', event.target.value)} />
+        <Field error={errors.phone} label="Phone Number" placeholder="+94 7X XXX XXXX" value={form.phone} onChange={(event) => updateField('phone', event.target.value)} />
         <label className="block">
           <span className="form-label">Subject <span className="text-rosewood">*</span></span>
-          <select className="form-control mt-2" value={form.subject} onChange={(event) => updateField('subject', event.target.value)}>
+          <select className="form-control mt-2" value={form.subject} onChange={(event) => updateField('subject', event.target.value)} aria-invalid={Boolean(errors.subject)}>
             <option value="">Select a subject</option>
             <option>Order support</option>
             <option>Product question</option>
             <option>Delivery information</option>
             <option>General inquiry</option>
           </select>
+          {errors.subject && <span className="mt-2 block text-xs font-semibold text-rosewood">{errors.subject}</span>}
         </label>
         <label className="block">
           <span className="form-label">Your Message <span className="text-rosewood">*</span></span>
-          <textarea className="form-control mt-2 min-h-32 resize-y py-3" placeholder="Type your message here..." value={form.message} onChange={(event) => updateField('message', event.target.value)} />
+          <textarea className="form-control mt-2 min-h-32 resize-y py-3" placeholder="Type your message here..." value={form.message} onChange={(event) => updateField('message', event.target.value)} aria-invalid={Boolean(errors.message)} />
+          {errors.message && <span className="mt-2 block text-xs font-semibold text-rosewood">{errors.message}</span>}
         </label>
         {feedback.message && (
           <p className={`flex items-center gap-2 rounded border px-4 py-3 text-sm font-semibold ${
@@ -171,15 +179,59 @@ function MessageForm() {
   );
 }
 
-function Field({ label, required = false, ...props }) {
+function Field({ error, label, required = false, ...props }) {
   return (
     <label className="block">
       <span className="form-label">
         {label} {required && <span className="text-rosewood">*</span>}
       </span>
-      <input className="form-control mt-2" {...props} />
+      <input className="form-control mt-2" aria-invalid={Boolean(error)} {...props} />
+      {error && <span className="mt-2 block text-xs font-semibold text-rosewood">{error}</span>}
     </label>
   );
+}
+
+function validateContactForm(form) {
+  const values = normalizeContactForm(form);
+  const nextErrors = {};
+
+  if (!values.fullName) {
+    nextErrors.fullName = 'Your name is required.';
+  } else if (values.fullName.length < 2) {
+    nextErrors.fullName = 'Enter at least 2 characters.';
+  }
+
+  if (!values.email) {
+    nextErrors.email = 'Your email is required.';
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
+    nextErrors.email = 'Enter a valid email address.';
+  }
+
+  if (values.phone && !/^[+()\d\s-]{7,18}$/.test(values.phone)) {
+    nextErrors.phone = 'Enter a valid phone number.';
+  }
+
+  if (!values.subject) {
+    nextErrors.subject = 'Choose a subject.';
+  }
+
+  if (!values.message) {
+    nextErrors.message = 'Your message is required.';
+  } else if (values.message.length < 10) {
+    nextErrors.message = 'Please write at least 10 characters.';
+  }
+
+  return nextErrors;
+}
+
+function normalizeContactForm(form) {
+  return {
+    fullName: form.fullName.trim(),
+    email: form.email.trim().toLowerCase(),
+    phone: form.phone.trim(),
+    subject: form.subject.trim(),
+    message: form.message.trim(),
+  };
 }
 
 function MapPanel() {
