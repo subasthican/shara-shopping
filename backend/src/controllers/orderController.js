@@ -87,7 +87,10 @@ export const getOrderById = asyncHandler(async (req, res) => {
 
 export const updateOrderStatus = asyncHandler(async (req, res) => {
   const { status, note } = req.body;
-  const order = await Order.findById(req.params.id);
+  const lookup = mongoose.isValidObjectId(req.params.id)
+    ? { _id: req.params.id }
+    : { orderNumber: req.params.id.replace(/^#/, '') };
+  const order = await Order.findOne(lookup);
 
   if (!order) {
     res.status(404);
