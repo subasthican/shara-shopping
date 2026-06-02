@@ -35,6 +35,7 @@ const nav = [
   [Package, 'Products', '/admin/products'],
   [Box, 'Categories', '/admin/categories'],
   [UsersRound, 'Customers', '/admin/customers'],
+  [MessageCircle, 'Messages', '/admin/messages'],
   [Tag, 'Offers & Coupons', '#offers'],
   [PackageCheck, 'Inventory', '#inventory'],
   [Star, 'Reviews', '#reviews'],
