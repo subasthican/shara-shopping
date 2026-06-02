@@ -27,7 +27,7 @@ import {
   UsersRound,
 } from 'lucide-react';
 import { dressProducts } from '../data/shopData.js';
-import { getProducts } from '../services/productService.js';
+import { deleteProduct, getProducts } from '../services/productService.js';
 
 const nav = [
   [Home, 'Dashboard', '/admin/dashboard'],
@@ -67,12 +67,15 @@ export default function ManageProductsPage() {
   const [activeStatus, setActiveStatus] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [deletingId, setDeletingId] = useState('');
 
   useEffect(() => {
     let isMounted = true;
     const loadProducts = async () => {
       setIsLoading(true);
       setApiError('');
+      setNotice('');
 
       try {
         const data = await getProducts({
@@ -113,6 +116,30 @@ export default function ManageProductsPage() {
 
   const stats = useMemo(() => buildStats(products), [products]);
 
+  const handleDeleteProduct = async (product) => {
+    if (!product.id) {
+      setApiError('Demo products cannot be deleted. Connect the backend catalog first.');
+      return;
+    }
+
+    const shouldDelete = window.confirm(`Delete ${product.name}? This cannot be undone.`);
+    if (!shouldDelete) return;
+
+    setDeletingId(product.id);
+    setApiError('');
+    setNotice('');
+
+    try {
+      await deleteProduct(product.id);
+      setProducts((currentProducts) => currentProducts.filter((item) => item.id !== product.id));
+      setNotice(`${product.name} deleted successfully.`);
+    } catch (error) {
+      setApiError(error.response?.data?.message || 'Unable to delete product. Check admin access and try again.');
+    } finally {
+      setDeletingId('');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#fbf7f4] text-ink">
       <div className="grid lg:grid-cols-[280px_1fr]">
@@ -142,7 +169,10 @@ export default function ManageProductsPage() {
             <ProductsTable
               activeStatus={activeStatus}
               apiError={apiError}
+              deletingId={deletingId}
               isLoading={isLoading}
+              notice={notice}
+              onDeleteProduct={handleDeleteProduct}
               products={visibleProducts}
               setActiveStatus={setActiveStatus}
               totalCount={products.length}
@@ -326,7 +356,7 @@ function Select({ label, onChange, options, value }) {
   );
 }
 
-function ProductsTable({ activeStatus, apiError, isLoading, products, setActiveStatus, totalCount }) {
+function ProductsTable({ activeStatus, apiError, deletingId, isLoading, notice, onDeleteProduct, products, setActiveStatus, totalCount }) {
   const tabs = [
     ['all', 'All'],
     ['active', 'Active'],
@@ -354,9 +384,9 @@ function ProductsTable({ activeStatus, apiError, isLoading, products, setActiveS
         </div>
       </div>
 
-      {(isLoading || apiError) && (
-        <div className={`mt-5 rounded-lg px-4 py-3 text-sm font-semibold ${apiError ? 'bg-[#fff3d8] text-[#9b6613]' : 'bg-blush text-rosewood'}`}>
-          {isLoading ? 'Loading products...' : apiError}
+      {(isLoading || apiError || notice) && (
+        <div className={`mt-5 rounded-lg px-4 py-3 text-sm font-semibold ${apiError ? 'bg-[#fff3d8] text-[#9b6613]' : notice ? 'bg-[#dcf5ea] text-[#15945d]' : 'bg-blush text-rosewood'}`}>
+          {isLoading ? 'Loading products...' : notice || apiError}
         </div>
       )}
 
@@ -380,7 +410,7 @@ function ProductsTable({ activeStatus, apiError, isLoading, products, setActiveS
           </thead>
           <tbody className="divide-y divide-[#eadfd8]">
             {products.map((product) => (
-              <ProductRow product={product} key={product.sku} />
+              <ProductRow deletingId={deletingId} onDeleteProduct={onDeleteProduct} product={product} key={product.sku} />
             ))}
           </tbody>
         </table>
@@ -413,7 +443,9 @@ function ProductsTable({ activeStatus, apiError, isLoading, products, setActiveS
   );
 }
 
-function ProductRow({ product }) {
+function ProductRow({ deletingId, onDeleteProduct, product }) {
+  const isDeleting = deletingId === product.id;
+
   return (
     <tr>
       <td className="py-4">
@@ -455,8 +487,13 @@ function ProductRow({ product }) {
           <a className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" href={product.editPath || '/admin/products/new'} aria-label={`Edit ${product.name}`}>
             <Edit3 size={16} />
           </a>
-          <button className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9] text-rosewood" aria-label={`Delete ${product.name}`}>
-            <Trash2 size={16} />
+          <button
+            className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9] text-rosewood disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label={`Delete ${product.name}`}
+            disabled={isDeleting}
+            onClick={() => onDeleteProduct(product)}
+          >
+            {isDeleting ? <Timer size={16} /> : <Trash2 size={16} />}
           </button>
           <button className="grid h-9 w-9 place-items-center rounded border border-[#ded3c9]" aria-label={`More actions for ${product.name}`}>
             <MoreVertical size={16} />
@@ -498,6 +535,7 @@ function mapApiProduct(product, index) {
 
   return {
     name: product.name,
+    id: product._id,
     sku: product.sku,
     category: product.category?.name || product.subcategory || 'Uncategorized',
     price: formatCurrency(product.price),
