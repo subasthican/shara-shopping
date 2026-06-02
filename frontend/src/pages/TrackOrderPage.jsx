@@ -1,6 +1,5 @@
 import {
   ClipboardCheck,
-  CreditCard,
   Gift,
   Headphones,
   Mail,
@@ -33,7 +32,7 @@ const customerDetails = [
   { icon: Phone, label: 'Phone', value: '077 123 4567' },
   { icon: MapPin, label: 'Shipping Address', value: '23/4, Flower Road, Borella, Colombo 08, Sri Lanka' },
   { icon: Truck, label: 'Shipping Method', value: 'Standard Delivery' },
-  { icon: CreditCard, label: 'Payment Method', value: 'Paid via Card' },
+  { icon: ClipboardCheck, label: 'Order Confirmation', value: 'Manual confirmation by Shara Shopping' },
 ];
 
 const items = [
@@ -67,6 +66,7 @@ const demoOrder = {
 
 export default function TrackOrderPage() {
   const [lookup, setLookup] = useState({ orderId: '', contact: '' });
+  const [errors, setErrors] = useState({});
   const [trackedOrder, setTrackedOrder] = useState(null);
   const [feedback, setFeedback] = useState({ type: '', message: '' });
   const [isTracking, setIsTracking] = useState(false);
@@ -74,13 +74,17 @@ export default function TrackOrderPage() {
 
   const handleLookupChange = (field, value) => {
     setLookup((current) => ({ ...current, [field]: value }));
+    setErrors((current) => ({ ...current, [field]: '' }));
   };
 
   const handleTrackOrder = async (event) => {
     event.preventDefault();
     setFeedback({ type: '', message: '' });
+    const normalizedLookup = normalizeLookup(lookup);
+    const nextErrors = validateLookup(normalizedLookup);
 
-    if (!lookup.orderId || !lookup.contact) {
+    if (Object.keys(nextErrors).length) {
+      setErrors(nextErrors);
       setFeedback({ type: 'error', message: 'Please enter your order ID and email or phone number.' });
       return;
     }
@@ -88,7 +92,7 @@ export default function TrackOrderPage() {
     setIsTracking(true);
 
     try {
-      const apiOrder = await trackOrder(lookup.orderId, lookup.contact);
+      const apiOrder = await trackOrder(normalizedLookup.orderId, normalizedLookup.contact);
       setTrackedOrder(formatApiOrder(apiOrder));
       setFeedback({ type: 'success', message: 'Order found. Your latest order status is shown below.' });
     } catch (error) {
@@ -103,6 +107,7 @@ export default function TrackOrderPage() {
       <Header />
       <main className="bg-[#fffaf7]">
         <TrackHero
+          errors={errors}
           feedback={feedback}
           isTracking={isTracking}
           lookup={lookup}
@@ -126,7 +131,7 @@ export default function TrackOrderPage() {
   );
 }
 
-function TrackHero({ feedback, isTracking, lookup, onChange, onSubmit }) {
+function TrackHero({ errors, feedback, isTracking, lookup, onChange, onSubmit }) {
   return (
     <section className="relative overflow-hidden px-4 py-10 sm:py-12">
       <div className="absolute right-[5%] top-6 hidden h-56 w-56 rounded-full bg-blush/60 lg:block" />
@@ -137,8 +142,8 @@ function TrackHero({ feedback, isTracking, lookup, onChange, onSubmit }) {
           <p className="mt-4 text-neutral-700">Enter your order ID and email address to check your order status.</p>
           <form className="mt-7 rounded-lg border border-[#eadfd8] bg-white p-5 shadow-sm" onSubmit={onSubmit}>
             <div className="grid gap-5 md:grid-cols-[1fr_1fr_auto] md:items-end">
-              <Field label="Order ID" placeholder="e.g. SH2505261" value={lookup.orderId} onChange={(event) => onChange('orderId', event.target.value)} />
-              <Field label="Email or Phone" placeholder="e.g. you@email.com or 0771234567" value={lookup.contact} onChange={(event) => onChange('contact', event.target.value)} />
+              <Field error={errors.orderId} label="Order ID" placeholder="e.g. SH2505261" value={lookup.orderId} onChange={(event) => onChange('orderId', event.target.value)} />
+              <Field error={errors.contact} label="Email or Phone" placeholder="e.g. you@email.com or 0771234567" value={lookup.contact} onChange={(event) => onChange('contact', event.target.value)} />
               <button className="btn-primary h-12 gap-3 disabled:cursor-not-allowed disabled:opacity-70" type="submit" disabled={isTracking}>
                 <PackageCheck size={18} /> {isTracking ? 'Tracking...' : 'Track Order'}
               </button>
@@ -167,13 +172,14 @@ function TrackHero({ feedback, isTracking, lookup, onChange, onSubmit }) {
   );
 }
 
-function Field({ label, ...props }) {
+function Field({ error, label, ...props }) {
   return (
     <label className="block text-left">
       <span className="form-label">
         {label} <span className="text-rosewood">*</span>
       </span>
-      <input className="form-control mt-2" {...props} />
+      <input className="form-control mt-2" aria-invalid={Boolean(error)} {...props} />
+      {error && <span className="mt-2 block text-xs font-semibold text-rosewood">{error}</span>}
     </label>
   );
 }
@@ -356,7 +362,7 @@ function formatApiOrder(order) {
       { icon: Phone, label: 'Phone', value: order.customer?.phone || 'Not provided' },
       { icon: MapPin, label: 'Shipping Address', value: formatAddress(order.delivery) },
       { icon: Truck, label: 'Shipping Method', value: 'Standard Delivery' },
-      { icon: CreditCard, label: 'Payment Method', value: titleCase(order.paymentStatus || 'pending') },
+      { icon: ClipboardCheck, label: 'Order Confirmation', value: titleCase(order.paymentStatus || 'pending') },
     ],
     items: (order.items || []).map((item) => ({
       name: item.productName,
@@ -426,4 +432,37 @@ function deliveryMessage(status) {
   }
 
   return 'Your order is being handled by the Shara Shopping team.';
+}
+
+function validateLookup(lookup) {
+  const errors = {};
+
+  if (!lookup.orderId) {
+    errors.orderId = 'Order ID is required.';
+  } else if (!/^SH\d{4,}$/i.test(lookup.orderId)) {
+    errors.orderId = 'Enter a valid Shara order ID, for example SH2505261.';
+  }
+
+  if (!lookup.contact) {
+    errors.contact = 'Email or phone number is required.';
+  } else if (!isEmail(lookup.contact) && !isPhoneNumber(lookup.contact)) {
+    errors.contact = 'Enter the email or phone number used for the order.';
+  }
+
+  return errors;
+}
+
+function normalizeLookup(lookup) {
+  return {
+    orderId: lookup.orderId.trim().replace(/^#/, '').toUpperCase(),
+    contact: lookup.contact.trim().toLowerCase(),
+  };
+}
+
+function isEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function isPhoneNumber(value) {
+  return /^[+()\d\s-]{7,18}$/.test(value);
 }
