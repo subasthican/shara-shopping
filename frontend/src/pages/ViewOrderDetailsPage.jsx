@@ -27,7 +27,7 @@ import {
   UsersRound,
   XCircle,
 } from 'lucide-react';
-import { getOrderById } from '../services/orderService.js';
+import { getOrderById, updateOrderStatus } from '../services/orderService.js';
 
 const nav = [
   [Home, 'Dashboard', '/admin/dashboard'],
@@ -92,6 +92,8 @@ export default function ViewOrderDetailsPage() {
   const [order, setOrder] = useState(demoOrder);
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -99,6 +101,7 @@ export default function ViewOrderDetailsPage() {
     const loadOrder = async () => {
       setIsLoading(true);
       setApiError('');
+      setNotice('');
 
       try {
         const data = await getOrderById(orderId);
@@ -126,6 +129,29 @@ export default function ViewOrderDetailsPage() {
   }, [orderId]);
 
   const statusClass = useMemo(() => getStatusClass(order.status), [order.status]);
+
+  const handleUpdateStatus = async ({ note, status }) => {
+    const apiOrderId = order.apiId || order.id.replace(/^#/, '');
+
+    if (!order.apiId) {
+      setApiError('Demo orders cannot be updated. Connect the backend order first.');
+      return;
+    }
+
+    setIsUpdatingStatus(true);
+    setApiError('');
+    setNotice('');
+
+    try {
+      const updatedOrder = await updateOrderStatus(apiOrderId, { note, status });
+      setOrder(mapApiOrder(updatedOrder));
+      setNotice(`Order status updated to ${formatStatus(status)}.`);
+    } catch (error) {
+      setApiError(error.response?.data?.message || 'Unable to update order status. Check admin access and try again.');
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#fbf7f4] text-ink">
@@ -155,9 +181,9 @@ export default function ViewOrderDetailsPage() {
               </div>
             </div>
 
-            {(isLoading || apiError) && (
-              <div className={`mt-6 rounded-lg px-4 py-3 text-sm font-semibold ${apiError ? 'bg-[#fff3d8] text-[#9b6613]' : 'bg-blush text-rosewood'}`}>
-                {isLoading ? 'Loading order details...' : apiError}
+            {(isLoading || apiError || notice) && (
+              <div className={`mt-6 rounded-lg px-4 py-3 text-sm font-semibold ${apiError ? 'bg-[#fff3d8] text-[#9b6613]' : notice ? 'bg-[#dcf5ea] text-[#15945d]' : 'bg-blush text-rosewood'}`}>
+                {isLoading ? 'Loading order details...' : notice || apiError}
               </div>
             )}
 
@@ -166,7 +192,7 @@ export default function ViewOrderDetailsPage() {
                 <InfoGrid order={order} />
                 <OrderItems order={order} />
               </div>
-              <Aside order={order} />
+              <Aside isUpdatingStatus={isUpdatingStatus} onUpdateStatus={handleUpdateStatus} order={order} />
             </div>
           </div>
         </main>
@@ -317,7 +343,7 @@ function OrderItems({ order }) {
   );
 }
 
-function Aside({ order }) {
+function Aside({ isUpdatingStatus, onUpdateStatus, order }) {
   return (
     <aside className="space-y-5">
       <Card title="Order Summary">
@@ -336,7 +362,7 @@ function Aside({ order }) {
         <p className="leading-6 text-neutral-700">{order.customerNotes}</p>
       </Card>
       <Card title="Order Actions">
-        <Action icon={RefreshCw} label="Update Order Status" />
+        <StatusUpdater currentStatus={order.statusKey || order.status.toLowerCase()} isUpdating={isUpdatingStatus} onUpdateStatus={onUpdateStatus} />
         <Action icon={Truck} label="Track Order" />
         <Action icon={Mail} label="Send Email to Customer" />
         <Action icon={XCircle} label="Cancel Order" danger />
@@ -356,6 +382,38 @@ function Card({ title, children, action }) {
 
 function Action({ icon: Icon, label, danger = false }) {
   return <button className={`inline-flex h-11 w-full items-center gap-3 rounded border px-4 font-semibold ${danger ? 'border-rosewood text-rosewood' : 'border-[#ded3c9]'}`}><Icon size={17} /> {label}</button>;
+}
+
+function StatusUpdater({ currentStatus, isUpdating, onUpdateStatus }) {
+  const [status, setStatus] = useState(currentStatus);
+  const [note, setNote] = useState('Status updated by admin.');
+
+  useEffect(() => {
+    setStatus(currentStatus);
+  }, [currentStatus]);
+
+  return (
+    <div className="rounded border border-[#ded3c9] p-3">
+      <label>
+        <span className="form-label">Order Status</span>
+        <span className="relative mt-2 block">
+          <select className="form-control appearance-none pr-11" value={status} onChange={(event) => setStatus(event.target.value)}>
+            {['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].map((option) => (
+              <option key={option} value={option}>{formatStatus(option)}</option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2" size={17} />
+        </span>
+      </label>
+      <label className="mt-3 block">
+        <span className="form-label">Status Note</span>
+        <textarea className="form-control mt-2 min-h-20 py-3" value={note} onChange={(event) => setNote(event.target.value)} />
+      </label>
+      <button className="btn-primary mt-3 h-11 w-full gap-2" disabled={isUpdating} onClick={() => onUpdateStatus({ note, status })} type="button">
+        <RefreshCw size={17} /> {isUpdating ? 'Updating...' : 'Update Order Status'}
+      </button>
+    </div>
+  );
 }
 
 function Line({ label, value, danger = false }) {
@@ -383,6 +441,7 @@ function mapApiOrder(order) {
     : [['Order Placed', createdAt ? formatDateTime(createdAt) : 'Recently', 'bg-[#17a34a]']];
 
   return {
+    apiId: order._id,
     id: `#${order.orderNumber}`,
     customer: {
       name: order.customer?.fullName || 'Customer',
@@ -413,6 +472,7 @@ function mapApiOrder(order) {
     paymentStatus,
     paymentMethod: formatStatus(order.contactMethod || 'whatsapp'),
     status,
+    statusKey: order.orderStatus || 'pending',
     notes: order.adminNotes || 'No admin notes added yet.',
     customerNotes: order.delivery?.note || 'No customer notes added yet.',
   };
