@@ -42,18 +42,24 @@ function LoginPanel() {
   const location = useLocation();
   const redirectTo = location.state?.from || '/admin/dashboard';
   const [credentials, setCredentials] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
   const [feedback, setFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const updateField = (field, value) => {
     setCredentials((current) => ({ ...current, [field]: value }));
+    setErrors((current) => ({ ...current, [field]: '' }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setFeedback('');
+    const normalizedCredentials = normalizeCredentials(credentials);
+    const nextErrors = validateCredentials(normalizedCredentials);
 
-    if (!credentials.email || !credentials.password) {
+    if (Object.keys(nextErrors).length) {
+      setErrors(nextErrors);
       setFeedback('Please enter your email and password.');
       return;
     }
@@ -61,7 +67,7 @@ function LoginPanel() {
     setIsSubmitting(true);
 
     try {
-      await loginAdmin(credentials);
+      await loginAdmin(normalizedCredentials);
       navigate(redirectTo, { replace: true });
     } catch (error) {
       setFeedback(error.response?.data?.message || 'Unable to login. Please check your credentials.');
@@ -87,12 +93,14 @@ function LoginPanel() {
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={20} />
               <input
                 className="form-control h-14 pl-12"
+                aria-invalid={Boolean(errors.email)}
                 placeholder="Enter your email address"
                 type="email"
                 value={credentials.email}
                 onChange={(event) => updateField('email', event.target.value)}
               />
             </span>
+            {errors.email && <span className="mt-2 block text-xs font-semibold text-rosewood">{errors.email}</span>}
           </label>
 
           <label className="block">
@@ -101,13 +109,22 @@ function LoginPanel() {
               <LockKeyhole className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={20} />
               <input
                 className="form-control h-14 px-12"
+                aria-invalid={Boolean(errors.password)}
                 placeholder="Enter your password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={credentials.password}
                 onChange={(event) => updateField('password', event.target.value)}
               />
-              <Eye className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-600" size={20} />
+              <button
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-600"
+                type="button"
+                onClick={() => setShowPassword((current) => !current)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                <Eye size={20} />
+              </button>
             </span>
+            {errors.password && <span className="mt-2 block text-xs font-semibold text-rosewood">{errors.password}</span>}
           </label>
 
           <div className="flex items-center justify-between gap-4 text-sm">
@@ -136,4 +153,29 @@ function LoginPanel() {
       </div>
     </section>
   );
+}
+
+function validateCredentials(credentials) {
+  const errors = {};
+
+  if (!credentials.email) {
+    errors.email = 'Email address is required.';
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(credentials.email)) {
+    errors.email = 'Enter a valid email address.';
+  }
+
+  if (!credentials.password) {
+    errors.password = 'Password is required.';
+  } else if (credentials.password.length < 8) {
+    errors.password = 'Password must be at least 8 characters.';
+  }
+
+  return errors;
+}
+
+function normalizeCredentials(credentials) {
+  return {
+    email: credentials.email.trim().toLowerCase(),
+    password: credentials.password,
+  };
 }

@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Buy Now form validation built with React, Vite, Tailwind CSS, and order API integration.
+- Admin login validation built with React, Vite, Tailwind CSS, and JWT auth integration.
 
 ## Run frontend
 
