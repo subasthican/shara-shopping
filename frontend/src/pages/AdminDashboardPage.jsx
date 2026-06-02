@@ -11,6 +11,7 @@ import {
   Mail,
   Megaphone,
   Menu,
+  MessageCircle,
   PackageCheck,
   PackageSearch,
   RefreshCcw,
@@ -26,20 +27,21 @@ import {
 import { getDashboardStats } from '../services/dashboardService.js';
 
 const sidebar = [
-  [LayoutDashboard, 'Dashboard'],
-  [ClipboardList, 'Orders'],
-  [PackageSearch, 'Products'],
-  [Boxes, 'Categories'],
-  [UsersRound, 'Customers'],
-  [Gift, 'Coupons'],
-  [Star, 'Reviews'],
-  [PackageCheck, 'Inventory'],
-  [BarChart3, 'Sales & Analytics'],
-  [RefreshCcw, 'Returns'],
-  [Megaphone, 'Marketing'],
-  [UsersRound, 'Users & Roles'],
-  [Settings, 'Settings'],
-  [Settings, 'Website Settings'],
+  [LayoutDashboard, 'Dashboard', '/admin/dashboard'],
+  [ClipboardList, 'Orders', '/admin/orders'],
+  [PackageSearch, 'Products', '/admin/products'],
+  [Boxes, 'Categories', '/admin/categories'],
+  [UsersRound, 'Customers', '/admin/customers'],
+  [MessageCircle, 'Messages', '/admin/messages'],
+  [Gift, 'Coupons', '#coupons'],
+  [Star, 'Reviews', '#reviews'],
+  [PackageCheck, 'Inventory', '#inventory'],
+  [BarChart3, 'Sales & Analytics', '#analytics'],
+  [RefreshCcw, 'Returns', '#returns'],
+  [Megaphone, 'Marketing', '#marketing'],
+  [UsersRound, 'Users & Roles', '#users'],
+  [Settings, 'Settings', '/admin/settings'],
+  [Settings, 'Website Settings', '/admin/settings'],
 ];
 
 const demoStats = [
@@ -146,12 +148,12 @@ function Sidebar() {
         <p className="mt-3 text-xs font-extrabold uppercase tracking-[0.28em]">Admin Panel</p>
       </div>
       <nav className="mt-8 space-y-2">
-        {sidebar.map(([Icon, label], index) => (
+        {sidebar.map(([Icon, label, href]) => (
           <a
             className={`flex h-12 items-center gap-4 rounded-lg px-5 text-sm font-semibold ${
-              index === 0 ? 'bg-rosewood text-white shadow-soft' : 'hover:bg-white'
+              href === '/admin/dashboard' ? 'bg-rosewood text-white shadow-soft' : 'hover:bg-white'
             }`}
-            href={index === 0 ? '/admin/dashboard' : '#admin-section'}
+            href={href}
             key={label}
           >
             <Icon size={19} /> {label}

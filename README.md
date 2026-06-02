@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Manual cart checkout copy built with React, Vite, Tailwind CSS, and Lucide React icons.
+- Admin navigation links built with React, Vite, Tailwind CSS, React Router routes, and Lucide React icons.
 
 ## Run frontend
 
