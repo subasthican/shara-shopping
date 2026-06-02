@@ -1,10 +1,16 @@
 import express from 'express';
-import { getAdminProfile, loginAdmin } from '../controllers/authController.js';
+import {
+  changeAdminPassword,
+  getAdminProfile,
+  loginAdmin,
+  updateAdminProfile,
+} from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 router.post('/login', loginAdmin);
-router.get('/me', protect, getAdminProfile);
+router.route('/me').get(protect, getAdminProfile).put(protect, updateAdminProfile);
+router.put('/password', protect, changeAdminPassword);
 
 export default router;
