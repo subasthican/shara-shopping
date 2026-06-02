@@ -5,14 +5,54 @@ import {
   Sparkles,
   UserRoundCheck,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import heroImage from '../assets/home-hero.png';
 import Footer from '../components/Footer.jsx';
 import Header from '../components/Header.jsx';
 import ProductCard from '../components/ProductCard.jsx';
 import { arrivals, quickCategories, shopCategories } from '../data/homeData.js';
+import { getProducts } from '../services/productService.js';
 
 export default function HomePage() {
+  const [arrivalProducts, setArrivalProducts] = useState(arrivals);
+  const [isLoadingArrivals, setIsLoadingArrivals] = useState(true);
+  const [arrivalError, setArrivalError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadArrivals = async () => {
+      setIsLoadingArrivals(true);
+      setArrivalError('');
+
+      try {
+        const data = await getProducts({ status: 'active' });
+        const newArrivals = data.filter((product) => product.isNewArrival);
+        const products = newArrivals.length ? newArrivals : data;
+
+        if (isMounted) {
+          setArrivalProducts(products.length ? products.slice(0, 4).map(mapApiProduct) : arrivals);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setArrivalProducts(arrivals);
+          setArrivalError('Showing curated arrivals while the catalog loads.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingArrivals(false);
+        }
+      }
+    };
+
+    loadArrivals();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-pearl text-ink">
       <Header />
@@ -20,7 +60,7 @@ export default function HomePage() {
         <Hero />
         <QuickCategoryBar />
         <CategoryGrid />
-        <NewArrivals />
+        <NewArrivals apiError={arrivalError} isLoading={isLoadingArrivals} products={arrivalProducts} />
         <OrderSteps />
         <OccasionBanner />
       </main>
@@ -110,7 +150,7 @@ function CategoryGrid() {
   );
 }
 
-function NewArrivals() {
+function NewArrivals({ apiError, isLoading, products }) {
   return (
     <section className="bg-white px-4 pb-8" id="new-arrivals">
       <div className="mx-auto flex max-w-7xl items-end justify-between gap-4">
@@ -120,8 +160,14 @@ function NewArrivals() {
         </a>
       </div>
 
+      {(isLoading || apiError) && (
+        <div className={`mx-auto mt-5 max-w-7xl rounded px-4 py-3 text-sm font-semibold ${apiError ? 'bg-[#fff3d8] text-[#9b6613]' : 'bg-blush text-rosewood'}`}>
+          {isLoading ? 'Loading new arrivals...' : apiError}
+        </div>
+      )}
+
       <div className="mx-auto mt-6 grid max-w-7xl gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {arrivals.map((product, index) => (
+        {products.map((product, index) => (
           <ProductCard
             product={product}
             selectedSize={index % 2 === 0 ? 'M' : 'S'}
@@ -191,6 +237,29 @@ function SectionTitle({ title, compact = false }) {
       <div className={compact ? 'title-mark' : 'title-mark mx-auto'} />
     </div>
   );
+}
+
+function mapApiProduct(product, index) {
+  const fallbackStyle = arrivals[index % arrivals.length];
+  const badge = product.isBestSeller ? 'Bestseller' : product.isNewArrival ? 'New' : '';
+
+  return {
+    name: product.name,
+    price: formatCurrency(product.price),
+    badge,
+    sizes: product.sizes?.length ? product.sizes : fallbackStyle.sizes,
+    accent: fallbackStyle.accent,
+    figure: fallbackStyle.figure,
+    image: product.images?.find((image) => image.isCover)?.url || product.images?.[0]?.url || '',
+  };
+}
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat('en-LK', {
+    currency: 'LKR',
+    maximumFractionDigits: 0,
+    style: 'currency',
+  }).format(value || 0);
 }
 
 function DressIcon() {
