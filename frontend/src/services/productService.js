@@ -19,3 +19,8 @@ export async function updateProduct(productId, productPayload) {
   const response = await apiClient.put(`/products/${productId}`, productPayload);
   return response.data;
 }
+
+export async function deleteProduct(productId) {
+  const response = await apiClient.delete(`/products/${productId}`);
+  return response.data;
+}
