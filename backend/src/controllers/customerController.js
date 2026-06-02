@@ -1,4 +1,5 @@
 import asyncHandler from 'express-async-handler';
+import mongoose from 'mongoose';
 import Customer from '../models/Customer.js';
 
 export const getCustomers = asyncHandler(async (req, res) => {
@@ -23,6 +24,11 @@ export const getCustomers = asyncHandler(async (req, res) => {
 });
 
 export const getCustomerById = asyncHandler(async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    res.status(400);
+    throw new Error('A valid customer ID is required.');
+  }
+
   const customer = await Customer.findById(req.params.id);
 
   if (!customer) {
