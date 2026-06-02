@@ -52,6 +52,8 @@ export const createProduct = asyncHandler(async (req, res) => {
 });
 
 export const updateProduct = asyncHandler(async (req, res) => {
+  validateProductId(req.params.id, res);
+
   const productPayload = normalizeProductPayload(req.body, { partial: true });
   const errors = validateProductPayload(productPayload, { partial: true });
 
@@ -71,6 +73,8 @@ export const updateProduct = asyncHandler(async (req, res) => {
 });
 
 export const deleteProduct = asyncHandler(async (req, res) => {
+  validateProductId(req.params.id, res);
+
   const product = await Product.findByIdAndDelete(req.params.id);
 
   if (!product) {
@@ -229,4 +233,11 @@ function validateProductPayload(payload, { partial = false } = {}) {
   }
 
   return errors;
+}
+
+function validateProductId(id, res) {
+  if (!mongoose.isValidObjectId(id)) {
+    res.status(400);
+    throw new Error('A valid product ID is required.');
+  }
 }
