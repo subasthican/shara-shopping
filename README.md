@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Frontend route lazy loading built with React, Vite, Tailwind CSS, and React Router.
+- Backend smoke checks built with Node.js, Express API routes, and npm scripts.
 
 ## Run frontend
 
@@ -27,6 +27,13 @@ Seed demo catalog and order data after configuring backend `.env`:
 ```bash
 cd backend
 npm run seed:demo
+```
+
+Smoke check the backend after it is running:
+
+```bash
+cd backend
+npm run smoke
 ```
 
 ## Run backend
