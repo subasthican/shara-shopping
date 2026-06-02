@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Backend smoke checks built with Node.js, Express API routes, and npm scripts.
+- Contact form validation built with React, Vite, Tailwind CSS, and contact message API integration.
 
 ## Run frontend
 
