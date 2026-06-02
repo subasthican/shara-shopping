@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import ContactMessage from '../models/ContactMessage.js';
 
 const CONTACT_MESSAGE_STATUSES = ['new', 'read', 'replied', 'archived'];
+const CONTACT_MESSAGE_STATUS_FILTERS = ['all', ...CONTACT_MESSAGE_STATUSES];
 
 export const createContactMessage = asyncHandler(async (req, res) => {
   const messagePayload = normalizeContactMessage(req.body);
@@ -18,8 +19,14 @@ export const createContactMessage = asyncHandler(async (req, res) => {
 });
 
 export const getContactMessages = asyncHandler(async (req, res) => {
-  const { search, status = 'all' } = req.query;
+  const search = String(req.query.search || '').trim();
+  const status = String(req.query.status || 'all').trim().toLowerCase();
   const query = {};
+
+  if (!CONTACT_MESSAGE_STATUS_FILTERS.includes(status)) {
+    res.status(400);
+    throw new Error('Contact message status filter is invalid.');
+  }
 
   if (status !== 'all') {
     query.status = status;
