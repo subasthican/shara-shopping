@@ -21,3 +21,8 @@ export async function getOrderById(orderId) {
   const { data } = await apiClient.get(`/orders/${orderId}`);
   return data;
 }
+
+export async function updateOrderStatus(orderId, statusPayload) {
+  const { data } = await apiClient.put(`/orders/${orderId}/status`, statusPayload);
+  return data;
+}
