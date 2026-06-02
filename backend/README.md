@@ -32,6 +32,9 @@ This creates or updates Shara demo categories, products, a customer, one order, 
 ## Core Routes
 
 - `POST /api/auth/login`
+- `GET /api/auth/me`
+- `PUT /api/auth/me`
+- `PUT /api/auth/password`
 - `GET /api/products`
 - `GET /api/products/:id`
 - `POST /api/products`
