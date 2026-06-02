@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Track order validation built with React, Vite, Tailwind CSS, and order tracking API integration.
+- Backend customer request validation built with Express, MongoDB, order APIs, and contact message APIs.
 
 ## Run frontend
 
