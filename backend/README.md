@@ -29,6 +29,16 @@ npm run seed:demo
 
 This creates or updates Shara demo categories, products, a customer, one order, and a contact message for local testing.
 
+## Smoke Check
+
+With the backend running, verify the public API surface:
+
+```bash
+npm run smoke
+```
+
+Set `API_BASE_URL` to test a different backend URL.
+
 ## Core Routes
 
 - `POST /api/auth/login`
