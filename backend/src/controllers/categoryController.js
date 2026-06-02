@@ -14,6 +14,11 @@ export const getCategories = asyncHandler(async (req, res) => {
     throw new Error('Category status filter is invalid.');
   }
 
+  if (search.length > 80) {
+    res.status(400);
+    throw new Error('Category search filter must be 80 characters or fewer.');
+  }
+
   if (status !== 'all') {
     query.isActive = status === 'active';
   }
