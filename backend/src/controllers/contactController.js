@@ -2,7 +2,15 @@ import asyncHandler from 'express-async-handler';
 import ContactMessage from '../models/ContactMessage.js';
 
 export const createContactMessage = asyncHandler(async (req, res) => {
-  const message = await ContactMessage.create(req.body);
+  const messagePayload = normalizeContactMessage(req.body);
+  const errors = validateContactMessage(messagePayload);
+
+  if (errors.length) {
+    res.status(400);
+    throw new Error(errors.join(' '));
+  }
+
+  const message = await ContactMessage.create(messagePayload);
   res.status(201).json(message);
 });
 
@@ -54,3 +62,47 @@ export const updateContactMessageStatus = asyncHandler(async (req, res) => {
 
   res.json(message);
 });
+
+function normalizeContactMessage(payload = {}) {
+  return {
+    fullName: String(payload.fullName || '').trim(),
+    email: String(payload.email || '').trim().toLowerCase(),
+    phone: String(payload.phone || '').trim(),
+    subject: String(payload.subject || '').trim(),
+    message: String(payload.message || '').trim(),
+  };
+}
+
+function validateContactMessage(message) {
+  const errors = [];
+
+  if (message.fullName.length < 2) {
+    errors.push('Full name must be at least 2 characters.');
+  }
+
+  if (!isEmail(message.email)) {
+    errors.push('A valid email address is required.');
+  }
+
+  if (message.phone && !isPhoneNumber(message.phone)) {
+    errors.push('Phone number is invalid.');
+  }
+
+  if (!message.subject) {
+    errors.push('Subject is required.');
+  }
+
+  if (message.message.length < 10) {
+    errors.push('Message must be at least 10 characters.');
+  }
+
+  return errors;
+}
+
+function isEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function isPhoneNumber(value) {
+  return /^[+()\d\s-]{7,18}$/.test(value);
+}
