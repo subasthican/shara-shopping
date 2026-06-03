@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Backend rate limiting built with Express middleware for admin login, public forms, order creation, and order tracking.
+- Backend list pagination built with opt-in page metadata for orders, customers, and contact messages.
 
 ## Project status
 
