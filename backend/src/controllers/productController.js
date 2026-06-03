@@ -60,6 +60,7 @@ export const getProductById = asyncHandler(async (req, res) => {
 export const createProduct = asyncHandler(async (req, res) => {
   const productPayload = normalizeProductPayload(req.body);
   const errors = validateProductPayload(productPayload);
+  errors.push(...validateProductPricing(productPayload));
 
   if (errors.length) {
     res.status(400);
@@ -75,6 +76,18 @@ export const updateProduct = asyncHandler(async (req, res) => {
 
   const productPayload = normalizeProductPayload(req.body, { partial: true });
   const errors = validateProductPayload(productPayload, { partial: true });
+  const pricingChanged = productPayload.price !== undefined || productPayload.salePrice !== undefined;
+
+  if (pricingChanged) {
+    const currentProduct = await Product.findById(req.params.id).select('price salePrice');
+
+    if (!currentProduct) {
+      res.status(404);
+      throw new Error('Product not found');
+    }
+
+    errors.push(...validateProductPricing(productPayload, currentProduct));
+  }
 
   if (errors.length) {
     res.status(400);
@@ -249,6 +262,18 @@ function validateProductPayload(payload, { partial = false } = {}) {
 
   if ((!partial || payload.status !== undefined) && !['active', 'draft', 'inactive'].includes(payload.status)) {
     errors.push('Product status is invalid.');
+  }
+
+  return errors;
+}
+
+function validateProductPricing(payload, currentProduct = {}) {
+  const errors = [];
+  const price = payload.price !== undefined ? payload.price : currentProduct.price;
+  const salePrice = payload.salePrice !== undefined ? payload.salePrice : currentProduct.salePrice;
+
+  if (Number.isFinite(price) && Number.isFinite(salePrice) && salePrice >= price) {
+    errors.push('Product sale price must be lower than the regular price.');
   }
 
   return errors;
