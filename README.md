@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Frontend production builds now require an explicit API URL and Docker passes the API URL at build time.
+- Backend now closes HTTP and database connections gracefully on shutdown signals.
 
 ## Project status
 
