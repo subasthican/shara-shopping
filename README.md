@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Deployment Dockerfiles built for backend, frontend, nginx SPA routing, and local production-like Docker Compose runs.
+- Backend request observability built with request IDs, response correlation headers, and production JSON request logs.
 
 ## Project status
 
