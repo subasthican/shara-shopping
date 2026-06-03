@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Backend request sanitizing built with Express middleware to strip unsafe Mongo operator and dotted payload keys.
+- Backend unit tests built with Node test runner for pagination metadata and request sanitizing safeguards.
 
 ## Project status
 
@@ -73,6 +73,7 @@ cd frontend
 npm run build
 
 cd ../backend
+npm test
 npm run smoke
 ```
 
