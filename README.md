@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Backend unit tests built with Node test runner for pagination metadata and request sanitizing safeguards.
+- Frontend storage tests built with Node test runner for wishlist persistence, cart quantities, and LKR price helpers.
 
 ## Project status
 
@@ -70,6 +70,7 @@ The backend runs on `http://127.0.0.1:5001/api` by default.
 
 ```bash
 cd frontend
+npm test
 npm run build
 
 cd ../backend
