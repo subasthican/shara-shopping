@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Backend error responses and production error logs now include request IDs for deployed debugging.
+- Backend startup validation now checks MongoDB URI format, production frontend origins, and production JWT secret strength.
 
 ## Project status
 

@@ -130,6 +130,7 @@ requireText('frontend/Dockerfile', 'ARG VITE_API_URL');
 requireText('docker-compose.yml', 'VITE_API_URL');
 requireText('backend/src/server.js', 'registerGracefulShutdown');
 requireText('backend/src/middleware/errorMiddleware.js', 'requestId');
+requireText('backend/src/config/env.js', 'CLIENT_URL must contain valid http or https origins');
 
 console.log('');
 
