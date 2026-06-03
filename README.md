@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Frontend admin session expiry handling built with JWT expiry checks, stale auth cleanup, and API 401 logout behavior.
+- Backend order stock validation built with product reference checks, availability safeguards, and stock decrementing.
 
 ## Project status
 
