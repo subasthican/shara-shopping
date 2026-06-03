@@ -4,14 +4,19 @@ export function notFound(req, res, next) {
   next(error);
 }
 
-export function errorHandler(error, _req, res, _next) {
+export function errorHandler(error, req, res, _next) {
   const duplicateKeyError = getDuplicateKeyError(error);
   const statusCode = duplicateKeyError
     ? 409
     : res.statusCode === 200 ? 500 : res.statusCode;
+  const message = duplicateKeyError || error.message || 'Server error';
+  const requestId = req.requestId;
+
+  logProductionError({ error, message, requestId, statusCode });
 
   res.status(statusCode).json({
-    message: duplicateKeyError || error.message || 'Server error',
+    message,
+    requestId,
     stack: process.env.NODE_ENV === 'production' ? undefined : error.stack,
   });
 }
@@ -28,4 +33,18 @@ function getDuplicateKeyError(error) {
   }
 
   return `A record with this ${fields.join(', ')} already exists.`;
+}
+
+function logProductionError({ error, message, requestId, statusCode }) {
+  if (process.env.NODE_ENV !== 'production') {
+    return;
+  }
+
+  console.error(JSON.stringify({
+    event: 'api_error',
+    message,
+    requestId,
+    statusCode,
+    stack: error.stack,
+  }));
 }
