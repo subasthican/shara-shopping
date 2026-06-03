@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Backend auth token error handling built with Express, JWT auth, admin middleware, and protected API workflows.
+- Backend CORS origin configuration built with Express, CORS middleware, environment config, and deployment workflows.
 
 ## Run frontend
 
