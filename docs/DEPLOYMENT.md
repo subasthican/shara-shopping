@@ -55,7 +55,7 @@ VITE_API_URL=https://api.example.com/api
 
 1. Deploy MongoDB or confirm MongoDB Atlas access.
 2. Deploy the backend with production environment variables.
-3. Confirm `GET /api/health` returns a successful response.
+3. Confirm `GET /api/health` returns `status: "ok"` and `database: "connected"`.
 4. Run the first admin seed script once with secure credentials.
 5. Deploy the frontend with `VITE_API_URL` pointing at the backend.
 6. Confirm `CLIENT_URL` on the backend includes the deployed frontend origin.
