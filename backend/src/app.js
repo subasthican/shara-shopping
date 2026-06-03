@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
+import mongoose from 'mongoose';
 import morgan from 'morgan';
 import authRoutes from './routes/authRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
@@ -11,6 +12,7 @@ import orderRoutes from './routes/orderRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 import { sanitizeRequest } from './middleware/sanitizeMiddleware.js';
+import { createHealthStatus } from './utils/healthStatus.js';
 
 const app = express();
 
@@ -25,7 +27,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', service: 'Shara Shopping API' });
+  res.json(createHealthStatus({ connectionState: mongoose.connection.readyState }));
 });
 
 app.use('/api/auth', authRoutes);

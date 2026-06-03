@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Backend environment validation built with startup checks for required MongoDB, JWT, and production CORS settings.
+- Backend health readiness built with uptime, timestamp, environment, and MongoDB connection status for monitoring.
 
 ## Project status
 
