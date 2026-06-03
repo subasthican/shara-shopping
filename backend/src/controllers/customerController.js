@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import mongoose from 'mongoose';
 import Customer from '../models/Customer.js';
+import { escapeRegex } from '../utils/escapeRegex.js';
 
 export const getCustomers = asyncHandler(async (req, res) => {
   const district = String(req.query.district || '').trim();
@@ -51,7 +52,3 @@ export const getCustomerById = asyncHandler(async (req, res) => {
 
   res.json(customer);
 });
-
-function escapeRegex(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}

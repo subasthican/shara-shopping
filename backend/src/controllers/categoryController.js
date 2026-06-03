@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import mongoose from 'mongoose';
 import Category from '../models/Category.js';
+import { escapeRegex } from '../utils/escapeRegex.js';
 
 const CATEGORY_STATUS_FILTERS = ['all', 'active', 'inactive'];
 
@@ -148,8 +149,4 @@ function validateCategoryId(id, res) {
     res.status(400);
     throw new Error('A valid category ID is required.');
   }
-}
-
-function escapeRegex(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
