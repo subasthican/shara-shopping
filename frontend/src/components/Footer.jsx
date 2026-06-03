@@ -1,4 +1,5 @@
 import { Facebook, Instagram, Mail, MapPin, Music2, Phone, Send } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Footer() {
   return (
@@ -18,12 +19,38 @@ export default function Footer() {
           </div>
         </div>
 
-        <FooterGroup title="Shop" links={['New In', 'Dresses', 'Clothing', 'Occasion', 'Bridal', 'Sale']} />
+        <FooterGroup
+          title="Shop"
+          links={[
+            { label: 'New In', to: '/#new-arrivals' },
+            { label: 'Dresses', to: '/dresses' },
+            { label: 'Clothing', to: '/categories/clothing' },
+            { label: 'Occasion', to: '/occasion' },
+            { label: 'Bridal', to: '/categories/bridal' },
+            { label: 'Sale', to: '/dresses' },
+          ]}
+        />
         <FooterGroup
           title="Customer Care"
-          links={['How to Order', 'Delivery Information', 'Returns & Exchanges', 'Size Guide', 'FAQs', 'Track Your Order']}
+          links={[
+            { label: 'How to Order', to: '/#how-to-order' },
+            { label: 'Delivery Information', to: '/contact' },
+            { label: 'Returns & Exchanges', to: '/contact' },
+            { label: 'Size Guide', to: '/dresses' },
+            { label: 'FAQs', to: '/contact' },
+            { label: 'Track Your Order', to: '/track-order' },
+          ]}
         />
-        <FooterGroup title="About" links={['About Us', 'Our Story', 'Careers', 'Privacy Policy', 'Terms & Conditions']} />
+        <FooterGroup
+          title="About"
+          links={[
+            { label: 'About Us', to: '/about' },
+            { label: 'Our Story', to: '/about' },
+            { label: 'Careers', to: '/contact' },
+            { label: 'Privacy Policy', to: '/about' },
+            { label: 'Terms & Conditions', to: '/about' },
+          ]}
+        />
 
         <div>
           <h3 className="footer-heading">Contact Us</h3>
@@ -55,10 +82,10 @@ function FooterGroup({ title, links }) {
       <h3 className="footer-heading">{title}</h3>
       <ul className="mt-4 space-y-2 text-sm text-neutral-700">
         {links.map((link) => (
-          <li key={link}>
-            <a href={`#${link.toLowerCase().replaceAll(' ', '-')}`} className="hover:text-rosewood">
-              {link}
-            </a>
+          <li key={link.label}>
+            <Link to={link.to} className="hover:text-rosewood">
+              {link.label}
+            </Link>
           </li>
         ))}
       </ul>
