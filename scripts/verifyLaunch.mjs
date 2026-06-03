@@ -131,6 +131,8 @@ requireText('docker-compose.yml', 'VITE_API_URL');
 requireText('backend/src/server.js', 'registerGracefulShutdown');
 requireText('backend/src/middleware/errorMiddleware.js', 'requestId');
 requireText('backend/src/config/env.js', 'CLIENT_URL must contain valid http or https origins');
+requireText('frontend/nginx.conf', 'X-Content-Type-Options');
+requireText('frontend/nginx.conf', 'gzip on');
 
 console.log('');
 
