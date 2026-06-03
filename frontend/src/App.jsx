@@ -15,6 +15,7 @@ const ManageContactMessagesPage = lazy(() => import('./pages/ManageContactMessag
 const ManageCustomersPage = lazy(() => import('./pages/ManageCustomersPage.jsx'));
 const ManageOrdersPage = lazy(() => import('./pages/ManageOrdersPage.jsx'));
 const ManageProductsPage = lazy(() => import('./pages/ManageProductsPage.jsx'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage.jsx'));
 const OccasionPage = lazy(() => import('./pages/OccasionPage.jsx'));
 const ProductDetailsPage = lazy(() => import('./pages/ProductDetailsPage.jsx'));
 const ShopPage = lazy(() => import('./pages/ShopPage.jsx'));
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="/admin/orders/:orderId" element={<AdminPage><ViewOrderDetailsPage /></AdminPage>} />
         <Route path="/admin/products/new" element={<AdminPage><AddEditProductPage /></AdminPage>} />
         <Route path="/admin/products/:productId/edit" element={<AdminPage><AddEditProductPage /></AdminPage>} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
   );
