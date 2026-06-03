@@ -38,12 +38,14 @@ export const getContactMessages = asyncHandler(async (req, res) => {
   }
 
   if (search) {
+    const safeSearch = escapeRegex(search);
+
     query.$or = [
-      { fullName: { $regex: search, $options: 'i' } },
-      { email: { $regex: search, $options: 'i' } },
-      { phone: { $regex: search, $options: 'i' } },
-      { subject: { $regex: search, $options: 'i' } },
-      { message: { $regex: search, $options: 'i' } },
+      { fullName: { $regex: safeSearch, $options: 'i' } },
+      { email: { $regex: safeSearch, $options: 'i' } },
+      { phone: { $regex: safeSearch, $options: 'i' } },
+      { subject: { $regex: safeSearch, $options: 'i' } },
+      { message: { $regex: safeSearch, $options: 'i' } },
     ];
   }
 
@@ -137,4 +139,8 @@ function validateContactMessageId(id, res) {
     res.status(400);
     throw new Error('A valid contact message ID is required.');
   }
+}
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
