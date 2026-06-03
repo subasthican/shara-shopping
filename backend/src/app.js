@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import helmet from 'helmet';
 import morgan from 'morgan';
 import authRoutes from './routes/authRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
@@ -12,6 +13,7 @@ import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 
 const app = express();
 
+app.use(helmet());
 app.use(cors({ origin: getClientOrigins(process.env.CLIENT_URL), credentials: true }));
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
