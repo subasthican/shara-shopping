@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Backend request observability built with request IDs, response correlation headers, and production JSON request logs.
+- Project launch verification script added for provider-neutral production handoff checks.
 
 ## Project status
 
@@ -69,6 +69,8 @@ The backend runs on `http://127.0.0.1:5001/api` by default.
 ## Verification
 
 ```bash
+node scripts/verifyLaunch.mjs
+
 cd frontend
 npm test
 npm run build

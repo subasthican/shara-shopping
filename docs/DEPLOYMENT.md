@@ -53,6 +53,12 @@ VITE_API_URL=https://api.example.com/api
 
 ## Deployment order
 
+Before choosing a hosting provider, confirm the repository has the expected launch files and configuration templates:
+
+```bash
+node scripts/verifyLaunch.mjs
+```
+
 1. Deploy MongoDB or confirm MongoDB Atlas access.
 2. Deploy the backend with production environment variables.
 3. Confirm `GET /api/health` returns `status: "ok"` and `database: "connected"`.
