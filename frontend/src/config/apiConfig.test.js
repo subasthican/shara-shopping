@@ -14,10 +14,7 @@ describe('resolveApiBaseUrl', () => {
     assert.equal(resolveApiBaseUrl({ MODE: 'development' }), 'http://127.0.0.1:5001/api');
   });
 
-  it('requires an API URL in production', () => {
-    assert.throws(
-      () => resolveApiBaseUrl({ MODE: 'production' }),
-      /VITE_API_URL is required/,
-    );
+  it('falls back to the same-origin API in production when no URL is configured', () => {
+    assert.equal(resolveApiBaseUrl({ MODE: 'production' }), '/api');
   });
 });

@@ -1,4 +1,5 @@
 const LOCAL_API_URL = 'http://127.0.0.1:5001/api';
+const PRODUCTION_API_URL = '/api';
 
 function trimTrailingSlash(value) {
   return value.replace(/\/+$/, '');
@@ -12,7 +13,7 @@ export function resolveApiBaseUrl(env = import.meta.env) {
   }
 
   if (env?.MODE === 'production') {
-    throw new Error('VITE_API_URL is required for production frontend builds.');
+    return PRODUCTION_API_URL;
   }
 
   return LOCAL_API_URL;

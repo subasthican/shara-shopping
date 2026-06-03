@@ -20,7 +20,7 @@ This document tracks what is ready for handoff and what should be treated as fut
 - Run `node scripts/verifyLaunch.mjs` from the repository root.
 - Configure production environment variables for backend and frontend.
 - Run `npm install` in both `backend` and `frontend`.
-- Run `VITE_API_URL=https://api.example.com/api npm run build` in `frontend`.
+- Run `VITE_API_URL=https://api.example.com/api npm run build` in `frontend` for cross-origin deployments, or use the same-origin `/api` fallback behind a reverse proxy.
 - Start the backend and run `npm run smoke` in `backend`.
 - Seed the first production admin with secure credentials.
 - Seed demo data only in local or staging environments.

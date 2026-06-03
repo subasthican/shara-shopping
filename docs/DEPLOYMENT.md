@@ -45,7 +45,8 @@ Required:
 
 - `VITE_API_URL`
 
-The value must point to the deployed backend API root. Production frontend builds fail when this value is missing.
+The value should point to the deployed backend API root for cross-origin deployments.
+If it is omitted, the frontend falls back to same-origin `/api`, which works when a reverse proxy or shared origin routes API traffic to the backend.
 
 ```bash
 VITE_API_URL=https://api.example.com/api
