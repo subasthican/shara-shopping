@@ -9,8 +9,9 @@ This document tracks what is ready for handoff and what should be treated as fut
 - Express API with MongoDB models for admins, products, categories, customers, orders, and contact messages.
 - Admin authentication with JWT-based protected routes.
 - Product, category, order, customer, contact, and dashboard API routes.
-- Demo data seeding, first-admin seeding, backend smoke checks, and frontend production build support.
+- Demo data seeding, first-admin seeding, backend smoke checks, backend/frontend unit tests, CI checks, and frontend production build support.
 - Theme-matched Shara Shopping UI using React, Vite, Tailwind CSS, React Router, and Lucide React icons.
+- Production hardening for rate limits, security headers, request sanitizing, duplicate-key errors, environment validation, health readiness, admin session expiry, list pagination, persistent wishlist/cart storage, and order stock validation.
 
 ## Handoff checklist
 
@@ -28,15 +29,19 @@ This document tracks what is ready for handoff and what should be treated as fut
 
 ## Production readiness still recommended
 
-- Add automated backend API tests and frontend component/page tests.
-- Add rate limiting for login, contact, order tracking, and admin write routes.
-- Add request sanitizing and stricter payload validation for public forms.
-- Add server-side pagination for large admin product, order, customer, and message lists.
-- Add persistent cart/wishlist storage tied to customer sessions or browser storage.
+These items need production provider choices, credentials, or deployment targets before implementation can be finalized:
+
 - Add payment gateway integration if online checkout is required.
-- Add centralized logging and uptime monitoring for production.
-- Add image upload workflow hardening, file size limits, and Cloudinary cleanup jobs.
-- Add a CI workflow that runs frontend build, backend syntax checks, and smoke checks.
+- Deploy the backend and frontend to chosen hosting providers.
+- Configure production domain, SSL, DNS, and provider-managed environment variables.
+- Connect uptime/error monitoring to the deployed services.
+- Configure real SMTP and Cloudinary credentials, then verify end-to-end notifications and image upload behavior.
+
+Additional optional improvements after launch:
+
+- Expand API and component test coverage beyond the current shared utility/session/storage tests.
+- Add customer accounts if wishlist/cart data should sync across devices.
+- Add advanced analytics and conversion tracking.
 
 ## Final verification commands
 
@@ -44,9 +49,11 @@ This document tracks what is ready for handoff and what should be treated as fut
 git status --short --branch
 
 cd frontend
+npm test
 npm run build
 
 cd ../backend
+npm test
 npm run smoke
 ```
 
