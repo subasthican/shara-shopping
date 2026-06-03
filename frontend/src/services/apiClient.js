@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { apiBaseUrl } from '../config/apiConfig.js';
 import { getStoredAdminToken, isAdminTokenExpired, logoutAdmin } from '../utils/adminSession.js';
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:5001/api',
+  baseURL: apiBaseUrl,
   headers: {
     'Content-Type': 'application/json',
   },
