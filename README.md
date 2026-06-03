@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Backend duplicate-key error handling built with conflict responses for unique product, category, admin, and order fields.
+- Backend request sanitizing built with Express middleware to strip unsafe Mongo operator and dotted payload keys.
 
 ## Project status
 
