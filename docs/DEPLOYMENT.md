@@ -107,6 +107,8 @@ docker compose up --build
 
 This starts MongoDB, the backend on `http://127.0.0.1:5001/api`, and the frontend on `http://127.0.0.1:8080`.
 
+The frontend Docker image serves the built SPA through Nginx with basic security headers, gzip compression, and immutable caching for hashed assets.
+
 Before using Docker in production, replace the sample `JWT_SECRET` in `docker-compose.yml` with a secure secret or a provider-managed secret.
 
 ## Launch checks
