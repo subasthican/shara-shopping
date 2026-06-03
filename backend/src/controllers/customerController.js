@@ -22,11 +22,13 @@ export const getCustomers = asyncHandler(async (req, res) => {
   }
 
   if (search) {
+    const safeSearch = escapeRegex(search);
+
     query.$or = [
-      { fullName: { $regex: search, $options: 'i' } },
-      { email: { $regex: search, $options: 'i' } },
-      { phone: { $regex: search, $options: 'i' } },
-      { whatsapp: { $regex: search, $options: 'i' } },
+      { fullName: { $regex: safeSearch, $options: 'i' } },
+      { email: { $regex: safeSearch, $options: 'i' } },
+      { phone: { $regex: safeSearch, $options: 'i' } },
+      { whatsapp: { $regex: safeSearch, $options: 'i' } },
     ];
   }
 
@@ -49,3 +51,7 @@ export const getCustomerById = asyncHandler(async (req, res) => {
 
   res.json(customer);
 });
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
