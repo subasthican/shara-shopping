@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Project completion documentation refreshed with current production-readiness status and remaining provider-dependent launch items.
+- Deployment Dockerfiles built for backend, frontend, nginx SPA routing, and local production-like Docker Compose runs.
 
 ## Project status
 
@@ -79,3 +79,12 @@ npm run smoke
 ```
 
 GitHub Actions also runs dependency installs, backend syntax checks, and the frontend production build on pushes to `main`, `develop`, and `feature/**` branches.
+
+## Docker run
+
+```bash
+docker compose up --build
+```
+
+Frontend: `http://127.0.0.1:8080`
+Backend: `http://127.0.0.1:5001/api`

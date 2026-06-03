@@ -1,0 +1,38 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      MONGODB_URI: mongodb://mongo:27017/shara-shopping
+      JWT_SECRET: replace-this-with-a-secure-docker-secret
+      JWT_EXPIRES_IN: 7d
+      CLIENT_URL: http://127.0.0.1:8080
+      ADMIN_EMAIL: admin@sharashopping.lk
+      SMTP_FROM: "Shara Shopping <no-reply@sharashopping.lk>"
+    ports:
+      - "5001:5001"
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  mongo-data:

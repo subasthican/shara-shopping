@@ -91,6 +91,18 @@ npm run build
 npm run preview
 ```
 
+## Docker deployment smoke run
+
+For a local production-like container run:
+
+```bash
+docker compose up --build
+```
+
+This starts MongoDB, the backend on `http://127.0.0.1:5001/api`, and the frontend on `http://127.0.0.1:8080`.
+
+Before using Docker in production, replace the sample `JWT_SECRET` in `docker-compose.yml` with a secure secret or a provider-managed secret.
+
 ## Launch checks
 
 - Customer home page loads.
