@@ -11,6 +11,7 @@ import dashboardRoutes from './routes/dashboardRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
+import { productionRequestLogger, requestContext } from './middleware/requestLoggingMiddleware.js';
 import { sanitizeRequest } from './middleware/sanitizeMiddleware.js';
 import { createHealthStatus } from './utils/healthStatus.js';
 
@@ -18,6 +19,8 @@ const app = express();
 
 app.use(helmet());
 app.use(cors({ origin: getClientOrigins(process.env.CLIENT_URL), credentials: true }));
+app.use(requestContext);
+app.use(productionRequestLogger);
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(sanitizeRequest);
