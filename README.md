@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Backend list pagination built with opt-in page metadata for orders, customers, and contact messages.
+- CI verification workflow built with GitHub Actions, backend syntax checks, dependency installs, and frontend production builds.
 
 ## Project status
 
@@ -75,3 +75,5 @@ npm run build
 cd ../backend
 npm run smoke
 ```
+
+GitHub Actions also runs dependency installs, backend syntax checks, and the frontend production build on pushes to `main`, `develop`, and `feature/**` branches.
