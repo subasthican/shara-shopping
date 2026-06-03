@@ -188,7 +188,7 @@ function OrderSteps() {
   ];
 
   return (
-    <section className="bg-white px-4 py-5">
+    <section className="bg-white px-4 py-5" id="how-to-order">
       <div className="mx-auto grid max-w-7xl gap-5 rounded bg-[#f4eee7] px-6 py-8 md:grid-cols-[1.3fr_1fr_1fr_1fr]">
         <div className="flex items-center gap-5 border-[#d8c8b8] md:border-r">
           <span className="grid h-24 w-24 shrink-0 place-items-center rounded-full border border-[#dccdbc]">
