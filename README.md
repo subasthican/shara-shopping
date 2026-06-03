@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Project launch verification script added for provider-neutral production handoff checks.
+- Frontend production builds now require an explicit API URL and Docker passes the API URL at build time.
 
 ## Project status
 
@@ -73,7 +73,7 @@ node scripts/verifyLaunch.mjs
 
 cd frontend
 npm test
-npm run build
+VITE_API_URL=http://127.0.0.1:5001/api npm run build
 
 cd ../backend
 npm test

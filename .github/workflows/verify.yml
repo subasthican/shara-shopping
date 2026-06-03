@@ -50,4 +50,6 @@ jobs:
 
       - name: Build frontend
         working-directory: frontend
+        env:
+          VITE_API_URL: http://127.0.0.1:5001/api
         run: npm run build

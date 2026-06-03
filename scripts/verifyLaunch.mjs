@@ -124,6 +124,10 @@ requirePackageScripts('frontend/package.json', ['build', 'test']);
 requireText('docs/PROJECT_COMPLETION.md', 'feature/*');
 requireText('docs/DEPLOYMENT.md', 'GET /api/health');
 requireText('.github/workflows/verify.yml', 'feature/**');
+requireText('.github/workflows/verify.yml', 'VITE_API_URL');
+requireText('frontend/vite.config.js', 'VITE_API_URL');
+requireText('frontend/Dockerfile', 'ARG VITE_API_URL');
+requireText('docker-compose.yml', 'VITE_API_URL');
 
 console.log('');
 
