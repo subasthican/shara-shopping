@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Frontend persistent wishlist and cart built with local storage, saved item actions, quantity controls, and dynamic totals.
+- Backend security headers built with Helmet middleware, Express hardening, and production API safeguards.
 
 ## Project status
 
