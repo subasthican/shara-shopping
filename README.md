@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Backend security headers built with Helmet middleware, Express hardening, and production API safeguards.
+- Backend duplicate-key error handling built with conflict responses for unique product, category, admin, and order fields.
 
 ## Project status
 
