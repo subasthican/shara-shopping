@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Frontend storage tests built with Node test runner for wishlist persistence, cart quantities, and LKR price helpers.
+- Frontend admin session expiry handling built with JWT expiry checks, stale auth cleanup, and API 401 logout behavior.
 
 ## Project status
 
