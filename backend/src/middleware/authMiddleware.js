@@ -11,7 +11,7 @@ export const protect = asyncHandler(async (req, res, next) => {
     throw new Error('Not authorized, token missing');
   }
 
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const decoded = verifyToken(token, res);
   req.admin = await Admin.findById(decoded.id).select('-password');
 
   if (!req.admin) {
@@ -30,4 +30,13 @@ function getBearerToken(authHeader) {
   }
 
   return token || null;
+}
+
+function verifyToken(token, res) {
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET);
+  } catch {
+    res.status(401);
+    throw new Error('Not authorized, token invalid or expired');
+  }
 }
