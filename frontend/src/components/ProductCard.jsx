@@ -2,6 +2,7 @@ import { Heart } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import BuyNowModal from './BuyNowModal.jsx';
+import { addWishlistItem } from '../utils/shopStorage.js';
 
 function slugify(value) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -9,7 +10,13 @@ function slugify(value) {
 
 export default function ProductCard({ product, selectedSize, className = '', imageClassName = 'aspect-[4/4.55]' }) {
   const [isOrderOpen, setIsOrderOpen] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
   const productPath = `/products/${slugify(product.name)}`;
+
+  function handleWishlistClick() {
+    addWishlistItem({ ...product, size: selectedSize || product.sizes?.[0] });
+    setIsWishlisted(true);
+  }
 
   return (
     <>
@@ -25,8 +32,12 @@ export default function ProductCard({ product, selectedSize, className = '', ima
               {product.badge}
             </span>
           )}
-          <button className="icon-button absolute right-3 top-3 z-20 bg-white/80" aria-label={`Add ${product.name} to wishlist`}>
-            <Heart size={20} />
+          <button
+            className={`icon-button absolute right-3 top-3 z-20 bg-white/80 ${isWishlisted ? 'text-rosewood' : ''}`}
+            onClick={handleWishlistClick}
+            aria-label={`Add ${product.name} to wishlist`}
+          >
+            <Heart size={20} fill={isWishlisted ? 'currentColor' : 'none'} />
           </button>
           {product.image ? (
             <img className="h-full w-full object-cover" src={product.image} alt="" />
