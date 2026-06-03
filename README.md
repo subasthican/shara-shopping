@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Backend search sanitization helper built with Express, MongoDB, shared utilities, and admin search workflows.
+- Backend auth token parsing built with Express, JWT auth, admin middleware, and protected API workflows.
 
 ## Run frontend
 

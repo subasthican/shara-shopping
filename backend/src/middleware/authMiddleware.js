@@ -4,7 +4,7 @@ import Admin from '../models/Admin.js';
 
 export const protect = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers.authorization || '';
-  const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+  const token = getBearerToken(authHeader);
 
   if (!token) {
     res.status(401);
@@ -21,3 +21,13 @@ export const protect = asyncHandler(async (req, res, next) => {
 
   next();
 });
+
+function getBearerToken(authHeader) {
+  const [scheme, token] = String(authHeader).trim().split(/\s+/);
+
+  if (scheme?.toLowerCase() !== 'bearer') {
+    return null;
+  }
+
+  return token || null;
+}
