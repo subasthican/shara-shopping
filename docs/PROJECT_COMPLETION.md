@@ -17,6 +17,7 @@ This document tracks what is ready for handoff and what should be treated as fut
 
 - Confirm `main` is the GitHub default branch.
 - Confirm new work follows `feature/*` to `develop` to `main`.
+- Run `node scripts/verifyLaunch.mjs` from the repository root.
 - Configure production environment variables for backend and frontend.
 - Run `npm install` in both `backend` and `frontend`.
 - Run `npm run build` in `frontend`.
@@ -47,6 +48,7 @@ Additional optional improvements after launch:
 
 ```bash
 git status --short --branch
+node scripts/verifyLaunch.mjs
 
 cd frontend
 npm test
