@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import mongoose from 'mongoose';
 import Customer from '../models/Customer.js';
 import Order from '../models/Order.js';
+import { escapeRegex } from '../utils/escapeRegex.js';
 import { sendOrderNotification } from '../utils/sendOrderNotification.js';
 
 const ORDER_STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
@@ -283,8 +284,4 @@ function getOrderLookup(id, res) {
 
   res.status(400);
   throw new Error('A valid order ID or order number is required.');
-}
-
-function escapeRegex(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
