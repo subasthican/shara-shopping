@@ -82,6 +82,16 @@ npm run smoke
 
 GitHub Actions also runs dependency installs, backend syntax checks, and the frontend production build on pushes to `main`, `develop`, and `feature/**` branches.
 
+## GitFlow
+
+Use this branch flow for all remaining work:
+
+1. Create a feature branch from `develop`.
+2. Commit and push the feature branch.
+3. Open a PR from `feature/*` into `develop`.
+4. After all feature work is merged and tested, open a PR from `develop` into `main`.
+5. Do not commit directly to `main`.
+
 ## Docker run
 
 ```bash
