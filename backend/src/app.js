@@ -12,7 +12,7 @@ import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_URL || true, credentials: true }));
+app.use(cors({ origin: getClientOrigins(process.env.CLIENT_URL), credentials: true }));
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -36,3 +36,16 @@ app.use(notFound);
 app.use(errorHandler);
 
 export default app;
+
+function getClientOrigins(clientUrl = '') {
+  const origins = clientUrl
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  if (!origins.length) {
+    return true;
+  }
+
+  return origins.length === 1 ? origins[0] : origins;
+}
