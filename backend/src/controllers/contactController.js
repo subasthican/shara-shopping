@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import mongoose from 'mongoose';
 import ContactMessage from '../models/ContactMessage.js';
+import { escapeRegex } from '../utils/escapeRegex.js';
 
 const CONTACT_MESSAGE_STATUSES = ['new', 'read', 'replied', 'archived'];
 const CONTACT_MESSAGE_STATUS_FILTERS = ['all', ...CONTACT_MESSAGE_STATUSES];
@@ -139,8 +140,4 @@ function validateContactMessageId(id, res) {
     res.status(400);
     throw new Error('A valid contact message ID is required.');
   }
-}
-
-function escapeRegex(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
