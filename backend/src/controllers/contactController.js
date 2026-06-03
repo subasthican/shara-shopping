@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import mongoose from 'mongoose';
 import ContactMessage from '../models/ContactMessage.js';
 import { escapeRegex } from '../utils/escapeRegex.js';
+import { createPaginatedResponse, getPagination } from '../utils/pagination.js';
 
 const CONTACT_MESSAGE_STATUSES = ['new', 'read', 'replied', 'archived'];
 const CONTACT_MESSAGE_STATUS_FILTERS = ['all', ...CONTACT_MESSAGE_STATUSES];
@@ -20,6 +21,7 @@ export const createContactMessage = asyncHandler(async (req, res) => {
 });
 
 export const getContactMessages = asyncHandler(async (req, res) => {
+  const pagination = getPagination(req.query);
   const search = String(req.query.search || '').trim();
   const status = String(req.query.status || 'all').trim().toLowerCase();
   const query = {};
@@ -50,7 +52,19 @@ export const getContactMessages = asyncHandler(async (req, res) => {
     ];
   }
 
-  const messages = await ContactMessage.find(query).sort({ createdAt: -1 });
+  const messageQuery = ContactMessage.find(query).sort({ createdAt: -1 });
+
+  if (pagination.requested) {
+    messageQuery.skip(pagination.skip).limit(pagination.limit);
+  }
+
+  const messages = await messageQuery;
+
+  if (pagination.requested) {
+    const total = await ContactMessage.countDocuments(query);
+    return res.json(createPaginatedResponse(messages, pagination, total));
+  }
+
   res.json(messages);
 });
 

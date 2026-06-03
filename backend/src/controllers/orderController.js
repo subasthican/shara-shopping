@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import Customer from '../models/Customer.js';
 import Order from '../models/Order.js';
 import { escapeRegex } from '../utils/escapeRegex.js';
+import { createPaginatedResponse, getPagination } from '../utils/pagination.js';
 import { sendOrderNotification } from '../utils/sendOrderNotification.js';
 
 const ORDER_STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
@@ -60,6 +61,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
 export const getOrders = asyncHandler(async (req, res) => {
   const paymentStatus = String(req.query.paymentStatus || 'all').trim().toLowerCase();
+  const pagination = getPagination(req.query);
   const search = String(req.query.search || '').trim();
   const status = String(req.query.status || 'all').trim().toLowerCase();
   const query = {};
@@ -98,7 +100,19 @@ export const getOrders = asyncHandler(async (req, res) => {
     ];
   }
 
-  const orders = await Order.find(query).sort({ createdAt: -1 });
+  const orderQuery = Order.find(query).sort({ createdAt: -1 });
+
+  if (pagination.requested) {
+    orderQuery.skip(pagination.skip).limit(pagination.limit);
+  }
+
+  const orders = await orderQuery;
+
+  if (pagination.requested) {
+    const total = await Order.countDocuments(query);
+    return res.json(createPaginatedResponse(orders, pagination, total));
+  }
+
   res.json(orders);
 });
 
