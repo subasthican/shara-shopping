@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Backend server startup error handling built with Express, MongoDB, environment config, and deployment workflows.
+- Backend product sale price validation built with Express, MongoDB models, admin product forms, and catalog safeguards.
 
 ## Run frontend
 
