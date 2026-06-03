@@ -11,7 +11,7 @@ This document tracks what is ready for handoff and what should be treated as fut
 - Product, category, order, customer, contact, and dashboard API routes.
 - Demo data seeding, first-admin seeding, backend smoke checks, backend/frontend unit tests, CI checks, frontend production build support with required API URL configuration, and provider-neutral Docker build files.
 - Theme-matched Shara Shopping UI using React, Vite, Tailwind CSS, React Router, and Lucide React icons.
-- Production hardening for rate limits, security headers, request sanitizing, duplicate-key errors, backend/frontend environment validation, health readiness, request IDs, production request logs, graceful backend shutdown, admin session expiry, list pagination, persistent wishlist/cart storage, and order stock validation.
+- Production hardening for rate limits, security headers, request sanitizing, duplicate-key errors, backend/frontend environment validation, health readiness, request IDs in responses, production request/error logs, graceful backend shutdown, admin session expiry, list pagination, persistent wishlist/cart storage, and order stock validation.
 
 ## Handoff checklist
 

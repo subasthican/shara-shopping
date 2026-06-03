@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Backend now closes HTTP and database connections gracefully on shutdown signals.
+- Backend error responses and production error logs now include request IDs for deployed debugging.
 
 ## Project status
 

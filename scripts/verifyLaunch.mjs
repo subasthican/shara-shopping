@@ -129,6 +129,7 @@ requireText('frontend/vite.config.js', 'VITE_API_URL');
 requireText('frontend/Dockerfile', 'ARG VITE_API_URL');
 requireText('docker-compose.yml', 'VITE_API_URL');
 requireText('backend/src/server.js', 'registerGracefulShutdown');
+requireText('backend/src/middleware/errorMiddleware.js', 'requestId');
 
 console.log('');
 
