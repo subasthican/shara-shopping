@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import mongoose from 'mongoose';
 import Customer from '../models/Customer.js';
 import Order from '../models/Order.js';
+import Product from '../models/Product.js';
 import { escapeRegex } from '../utils/escapeRegex.js';
 import { createPaginatedResponse, getPagination } from '../utils/pagination.js';
 import { sendOrderNotification } from '../utils/sendOrderNotification.js';
@@ -22,6 +23,8 @@ export const createOrder = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error(errors.join(' '));
   }
+
+  await validateReferencedProductStock(items, res);
 
   const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const customerLookup = [{ phone: customer.phone }];
@@ -55,6 +58,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     timeline: [{ status: 'pending', note: 'Order submitted by customer' }],
   });
 
+  await decrementReferencedProductStock(items);
   await sendOrderNotification(order);
   res.status(201).json(order);
 });
@@ -250,9 +254,88 @@ function validateOrderPayload({ customer, delivery, items }) {
     if (!Number.isFinite(item.quantity) || item.quantity < 1) {
       errors.push(`Order item ${index + 1} has an invalid quantity.`);
     }
+
+    if (item.product && !mongoose.isValidObjectId(item.product)) {
+      errors.push(`Order item ${index + 1} has an invalid product reference.`);
+    }
   });
 
   return errors;
+}
+
+async function validateReferencedProductStock(items, res) {
+  const referencedItems = getReferencedItemQuantities(items);
+
+  if (!referencedItems.length) {
+    return;
+  }
+
+  const products = await Product.find({
+    _id: { $in: referencedItems.map((item) => item.product) },
+  }).select('name stock status');
+
+  const productMap = new Map(products.map((product) => [product._id.toString(), product]));
+  const errors = [];
+
+  referencedItems.forEach((item) => {
+    const product = productMap.get(item.product);
+
+    if (!product) {
+      errors.push(`${item.productName} is no longer available.`);
+      return;
+    }
+
+    if (product.status !== 'active') {
+      errors.push(`${product.name} is not available for ordering.`);
+      return;
+    }
+
+    if (product.stock < item.quantity) {
+      errors.push(`${product.name} has only ${product.stock} item(s) available.`);
+    }
+  });
+
+  if (errors.length) {
+    res.status(400);
+    throw new Error(errors.join(' '));
+  }
+}
+
+async function decrementReferencedProductStock(items) {
+  const referencedItems = getReferencedItemQuantities(items);
+
+  if (!referencedItems.length) {
+    return;
+  }
+
+  await Product.bulkWrite(
+    referencedItems.map((item) => ({
+      updateOne: {
+        filter: { _id: item.product },
+        update: { $inc: { stock: -item.quantity } },
+      },
+    })),
+  );
+}
+
+function getReferencedItemQuantities(items) {
+  const quantityMap = new Map();
+
+  items
+    .filter((item) => item.product)
+    .forEach((item) => {
+      const product = String(item.product);
+      const currentItem = quantityMap.get(product) || {
+        product,
+        productName: item.productName,
+        quantity: 0,
+      };
+
+      currentItem.quantity += item.quantity;
+      quantityMap.set(product, currentItem);
+    });
+
+  return [...quantityMap.values()];
 }
 
 function isEmail(value) {
