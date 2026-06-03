@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- CI verification workflow built with GitHub Actions, backend syntax checks, dependency installs, and frontend production builds.
+- Frontend persistent wishlist and cart built with local storage, saved item actions, quantity controls, and dynamic totals.
 
 ## Project status
 
