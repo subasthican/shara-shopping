@@ -5,6 +5,7 @@ Use this guide when preparing the project for staging or production.
 ## Backend environment
 
 Create backend environment variables from `backend/.env.example`.
+The backend validates required environment variables at startup and fails fast when core production settings are missing.
 
 Required for the API:
 
