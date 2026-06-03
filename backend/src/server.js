@@ -1,8 +1,10 @@
 import dotenv from 'dotenv';
 import app from './app.js';
 import { connectDatabase } from './config/database.js';
+import { validateEnvironment } from './config/env.js';
 
 dotenv.config();
+validateEnvironment();
 
 const port = process.env.PORT || 5001;
 

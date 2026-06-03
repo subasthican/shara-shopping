@@ -4,7 +4,7 @@ Luxury fashion ecommerce website for Shara Shopping.
 
 ## Current feature
 
-- Backend order stock validation built with product reference checks, availability safeguards, and stock decrementing.
+- Backend environment validation built with startup checks for required MongoDB, JWT, and production CORS settings.
 
 ## Project status
 
