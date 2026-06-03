@@ -2,9 +2,11 @@ import asyncHandler from 'express-async-handler';
 import mongoose from 'mongoose';
 import Customer from '../models/Customer.js';
 import { escapeRegex } from '../utils/escapeRegex.js';
+import { createPaginatedResponse, getPagination } from '../utils/pagination.js';
 
 export const getCustomers = asyncHandler(async (req, res) => {
   const district = String(req.query.district || '').trim();
+  const pagination = getPagination(req.query);
   const search = String(req.query.search || '').trim();
   const query = {};
 
@@ -33,7 +35,19 @@ export const getCustomers = asyncHandler(async (req, res) => {
     ];
   }
 
-  const customers = await Customer.find(query).sort({ createdAt: -1 });
+  const customerQuery = Customer.find(query).sort({ createdAt: -1 });
+
+  if (pagination.requested) {
+    customerQuery.skip(pagination.skip).limit(pagination.limit);
+  }
+
+  const customers = await customerQuery;
+
+  if (pagination.requested) {
+    const total = await Customer.countDocuments(query);
+    return res.json(createPaginatedResponse(customers, pagination, total));
+  }
+
   res.json(customers);
 });
 
