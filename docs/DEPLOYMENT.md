@@ -45,7 +45,7 @@ Required:
 
 - `VITE_API_URL`
 
-The value must point to the deployed backend API root, for example:
+The value must point to the deployed backend API root. Production frontend builds fail when this value is missing.
 
 ```bash
 VITE_API_URL=https://api.example.com/api
@@ -93,7 +93,7 @@ API_BASE_URL=https://api.example.com/api npm run smoke
 ```bash
 cd frontend
 npm install
-npm run build
+VITE_API_URL=https://api.example.com/api npm run build
 npm run preview
 ```
 

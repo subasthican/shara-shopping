@@ -9,9 +9,9 @@ This document tracks what is ready for handoff and what should be treated as fut
 - Express API with MongoDB models for admins, products, categories, customers, orders, and contact messages.
 - Admin authentication with JWT-based protected routes.
 - Product, category, order, customer, contact, and dashboard API routes.
-- Demo data seeding, first-admin seeding, backend smoke checks, backend/frontend unit tests, CI checks, frontend production build support, and provider-neutral Docker build files.
+- Demo data seeding, first-admin seeding, backend smoke checks, backend/frontend unit tests, CI checks, frontend production build support with required API URL configuration, and provider-neutral Docker build files.
 - Theme-matched Shara Shopping UI using React, Vite, Tailwind CSS, React Router, and Lucide React icons.
-- Production hardening for rate limits, security headers, request sanitizing, duplicate-key errors, environment validation, health readiness, request IDs, production request logs, admin session expiry, list pagination, persistent wishlist/cart storage, and order stock validation.
+- Production hardening for rate limits, security headers, request sanitizing, duplicate-key errors, backend/frontend environment validation, health readiness, request IDs, production request logs, admin session expiry, list pagination, persistent wishlist/cart storage, and order stock validation.
 
 ## Handoff checklist
 
@@ -20,7 +20,7 @@ This document tracks what is ready for handoff and what should be treated as fut
 - Run `node scripts/verifyLaunch.mjs` from the repository root.
 - Configure production environment variables for backend and frontend.
 - Run `npm install` in both `backend` and `frontend`.
-- Run `npm run build` in `frontend`.
+- Run `VITE_API_URL=https://api.example.com/api npm run build` in `frontend`.
 - Start the backend and run `npm run smoke` in `backend`.
 - Seed the first production admin with secure credentials.
 - Seed demo data only in local or staging environments.
@@ -52,7 +52,7 @@ node scripts/verifyLaunch.mjs
 
 cd frontend
 npm test
-npm run build
+VITE_API_URL=http://127.0.0.1:5001/api npm run build
 
 cd ../backend
 npm test
